@@ -1,4 +1,4 @@
-use std::{path::Path, collections::HashMap, fmt::format};
+use std::{path::Path, collections::HashMap, fmt::format, fs::ReadDir};
 
 use crate::term::{error, warn, info, ok};
 
@@ -37,33 +37,9 @@ pub fn gen_hashtable() -> HashMap<String,String> {
         return hashes;
     }
 
-
     match srcdir.read_dir() {
         Ok(iter) => {
-            for f in iter {
-                match f {
-                    Ok(f) => {
-                        if f.metadata().unwrap().is_dir() {
-                            continue;
-                        }
-
-                        let contents = match std::fs::read_to_string(f.path()) {
-                            Ok(contents) => { contents },
-                            Err(_) => {
-                                warn(format!("Failed to read a file in src! Attempting to continue without."));
-                                continue;
-                            },
-                        };
-                        let hash = md5::compute(contents);
-                        info(format!("Hashed file {} as {:x}", f.path().display(), &hash));
-                        hashes.insert(f.path().display().to_string(), format!("{:x}",hash));
-                    },
-                    Err(_) => {
-                        warn(format!("Failed to read a file in src! Attempting to continue without."));
-                        continue;
-                    },
-                }
-            }
+            recurse_dir(iter, &mut hashes);
         },
         Err(_) => {
             error(format!("Failed to read src/. Abort."));
@@ -72,6 +48,36 @@ pub fn gen_hashtable() -> HashMap<String,String> {
     }
 
     return hashes;
+}
+
+fn recurse_dir(dir: ReadDir, hashes: &mut HashMap<String,String>) {
+    for f in dir {
+        match f {
+            Ok(f) => {
+                if f.metadata().unwrap().is_dir() {
+                    recurse_dir(match std::fs::read_dir(f.path()) {
+                        Ok(dir) => { dir },
+                        Err(_) => {
+                            error(format!("Failed reading source tree."));
+                            std::process::exit(1);
+                        },
+                    }, hashes);
+                }
+                let contents = match std::fs::read_to_string(f.path()) {
+                    Ok(contents) => { contents },
+                    Err(_) => {
+                        continue;
+                    },
+                };
+                let hash = md5::compute(contents);
+                info(format!("Hashed file {} as {:x}", f.path().display(), &hash));
+                hashes.insert(f.path().display().to_string(), format!("{:x}",hash));
+            },
+            Err(_) => {
+                continue;
+            },
+        }
+    }
 }
 
 pub fn read_ibht() -> HashMap<String,String> {

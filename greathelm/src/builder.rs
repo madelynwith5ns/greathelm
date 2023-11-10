@@ -1,4 +1,4 @@
-use std::{path::{Path, PathBuf}, str::FromStr, process::Command, io::Stdout};
+use std::{path::{Path, PathBuf}, str::FromStr, process::Command, io::Stdout, collections::HashMap};
 
 use crate::{projectmanifest::ProjectManifest, term::{error, info, ok}, ibht};
 
@@ -53,32 +53,34 @@ pub fn c_builder(manifest: ProjectManifest) {
     let hashes = ibht::gen_hashtable();
     let ibht = ibht::read_ibht();
 
-    let mut rebuild: Vec<PathBuf> = Vec::new();
+    let mut rebuild: HashMap<PathBuf,String> = HashMap::new();
     let mut link: Vec<String> = Vec::new();
 
     for k in hashes.keys() {
+        if k.ends_with(".h") { continue; }
+
         let path = PathBuf::from_str(k).unwrap();
-        link.push(format!("build/{}.o", path.file_name().unwrap().to_string_lossy()));
+        link.push(format!("build/{}-{}.o", path.file_name().unwrap().to_string_lossy(),hashes.get(k).unwrap()));
 
         if !ibht.contains_key(k) { 
             info(format!("File {k} changed. It will be rebuilt."));
-            rebuild.push(PathBuf::from_str(k).unwrap());
+            rebuild.insert(PathBuf::from_str(k).unwrap(),hashes.get(k).unwrap().to_owned());
             continue;
         } 
         if hashes.get(k).unwrap() != ibht.get(k).unwrap() {
             info(format!("File {k} changed. It will be rebuilt."));
-            rebuild.push(PathBuf::from_str(k).unwrap());
+            rebuild.insert(PathBuf::from_str(k).unwrap(),hashes.get(k).unwrap().to_owned());
         }
     }
 
     let mut outs: Vec<String> = Vec::new();
 
-    for f in rebuild {
+    for f in rebuild.keys() {
         info(format!("CC {}", f.display()));
         let cc_incantation = Command::new(cc.clone())
             .arg("-c")
             .arg("-o")
-            .arg(format!("build/{}.o", f.file_name().unwrap().to_string_lossy()))
+            .arg(format!("build/{}-{}.o", f.file_name().unwrap().to_string_lossy(),rebuild.get(f).unwrap()))
             .arg(format!("-O{opt}"))
             .arg("-Wall")
             .arg("-Werror")
