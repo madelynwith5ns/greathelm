@@ -81,7 +81,12 @@ fn recurse_dir(dir: ReadDir, hashes: &mut HashMap<String,String>) {
 }
 
 pub fn read_ibht() -> HashMap<String,String> {
-    let ibht_file = match std::fs::read_to_string(Path::new("IBHT.ghd")) {
+    let ibht_path = Path::new("IBHT.ghd");
+    if !ibht_path.exists() {
+        return HashMap::new();
+    }
+
+    let ibht_file = match std::fs::read_to_string(ibht_path) {
         Ok(ibht) => { ibht },
         Err(e) => {
             error(format!("Failed to read IBHT. Error is below:"));

@@ -1,6 +1,6 @@
-use std::{path::{Path, PathBuf}, str::FromStr, process::Command, io::Stdout, collections::HashMap};
+use std::{path::{Path, PathBuf}, str::FromStr, process::Command, io::{Stdout, Write}, collections::HashMap};
 
-use crate::{projectmanifest::ProjectManifest, term::{error, info, ok}, ibht};
+use crate::{projectmanifest::ProjectManifest, term::{error, info, ok, warn}, ibht};
 
 pub fn build(manifest: ProjectManifest) {
     let project_type = manifest.properties.get("Project-Type").unwrap();
@@ -45,6 +45,34 @@ pub fn c_builder(manifest: ProjectManifest) {
         Some(artifact) => { artifact.to_owned() },
         None => { "executable.elf".into() }
     };
+    let cflags = match manifest.properties.get("Additional-CC-Flags".into()) {
+        Some(cf) => {
+            cf.split(",").collect()
+        },
+        None => {
+            vec![]
+        },
+    };
+    let ldflags = match manifest.properties.get("Additional-LD-Flags".into()) {
+        Some(ldf) => {
+            ldf.split(",").collect()
+        },
+        None => {
+            vec![]
+        },
+    };
+    let mut emit = match manifest.properties.get("Emit".into()) {
+        Some(emit) => { emit.to_owned() },
+        None => { "binary".into() }
+    };
+    if emit == "binary" || emit == "executable" {
+        info(format!("Emitting an Executable Binary"));
+    } else if emit == "shared" || emit == "dylib" {
+        info(format!("Emitting a Shared Object"));
+    } else {
+        warn(format!("Unrecognized EMIT. Defaulting to binary."));
+        emit = "binary".into();
+    }
 
     info(format!("Using CC \"{cc}\""));
     info(format!("Using LD \"{ld}\""));
@@ -85,26 +113,66 @@ pub fn c_builder(manifest: ProjectManifest) {
             .arg("-Wall")
             .arg("-Werror")
             .arg("-Wpedantic")
+            .args(cflags.clone())
             .arg(format!("{}", f.display()))
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::piped())
-            .spawn().unwrap().wait().unwrap();
+            .output().unwrap();
         outs.push(format!("build/{}.o",f.file_name().unwrap().to_string_lossy()));
+
+        print!("{}", String::from_utf8(cc_incantation.stderr).unwrap());
+        std::io::stdout().flush().ok();
+
+        /*
         if cc_incantation.success() {
             ok(format!("CC {}", f.display()));
         } else {
             error(format!("CC {}", f.display()));
             std::process::exit(1);
         }
+        */
     }
 
     info(format!("LD {artifact}"));
-    let ld_incantation = Command::new(ld.clone())
+    let mut ld_incantation = Command::new(ld.clone());
+    let ld_incantation = ld_incantation
         .arg("-o")
-        .arg(format!("build/{artifact}"))
+        .arg(format!("build/{artifact}{}", if emit == "shared" || emit == "dylib" { ".so" } else { "" }))
+        .args(ldflags.clone())
         .args(link)
+        .arg("-I./lib/include")
+        .arg("-L./lib/shared")
         .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped());
+
+    for dep in manifest.dependencies {
+        if dep.starts_with("!") { continue; }
+
+        if dep.starts_with("sys:") {
+            let dep = dep.split_once("sys:").unwrap().1;
+            let pkgconf = Command::new("pkgconf")
+                .arg("--libs")
+                .arg("--cflags")
+                .arg(dep)
+                .output()
+                .unwrap();
+            let dep_ld_flags = String::from_utf8(pkgconf.stdout).unwrap();
+            let dep_ld_flags = dep_ld_flags.split(" ");
+            for flag in dep_ld_flags {
+                if flag == " " { continue; }
+                if flag == "\n" { continue; }
+                ld_incantation.arg(flag);
+            }
+        } else {
+            ld_incantation.arg(format!("-l{dep}"));
+        }
+    }
+
+    if emit == "shared" || emit == "dylib" {
+        ld_incantation.arg("-shared");
+    } 
+
+    let ld_incantation = ld_incantation
         .spawn()
         .unwrap()
         .wait()
