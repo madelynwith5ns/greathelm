@@ -2,13 +2,13 @@ use std::{collections::HashMap, path::Path};
 
 use term::ok;
 
-use crate::term::{info, warn, error};
+use crate::term::{error, info, warn};
 
-mod term;
-mod generator;
-mod projectmanifest;
-mod ibht;
 mod builder;
+mod generator;
+mod ibht;
+mod projectmanifest;
+mod term;
 
 fn main() {
     if std::env::args().len() <= 1 {
@@ -18,8 +18,10 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     let action = match args.get(1) {
-        Some(arg) => { arg },
-        None => { panic!("Insufficient arguments but check was bypassed. How?") },
+        Some(arg) => arg,
+        None => {
+            panic!("Insufficient arguments but check was bypassed. How?")
+        }
     };
 
     let mut flags = HashMap::new();
@@ -38,11 +40,11 @@ fn main() {
     match action.as_str() {
         "init" => {
             let cdir = match std::env::current_dir() {
-                Ok(dir) => { dir },
-                Err(_) => { 
+                Ok(dir) => dir,
+                Err(_) => {
                     error(format!("Current directory is invalid."));
                     return;
-                },
+                }
             };
 
             let project_name: String;
@@ -51,20 +53,20 @@ fn main() {
                 project_name = flags.get("project-name").unwrap().clone();
             } else {
                 let fname = match cdir.file_name() {
-                    Some(fname) => { fname.to_string_lossy() },
-                    None => { 
+                    Some(fname) => fname.to_string_lossy(),
+                    None => {
                         error(format!("Current directory is invalid."));
                         return;
-                    },
+                    }
                 };
                 project_name = fname.to_string();
             }
 
-
             let mut project_type: String = "C".into();
 
             if flags.contains_key("project-type") {
-                project_type = get_project_type_from_aliases(flags.get("project-type").unwrap().clone());
+                project_type =
+                    get_project_type_from_aliases(flags.get("project-type").unwrap().clone());
             }
 
             if project_type == "Unknown" {
@@ -75,10 +77,13 @@ fn main() {
                 info(format!("Project type is \"{}\"", project_type));
             }
 
-            info(format!("Initializing current directory as Greathelm project \"{}\"", project_name));
+            info(format!(
+                "Initializing current directory as Greathelm project \"{}\"",
+                project_name
+            ));
 
             generator::generate(project_type.clone(), cdir);
-            
+
             info(format!("Writing project manifest..."));
             projectmanifest::create_manifest(project_name, project_type);
 
@@ -86,22 +91,24 @@ fn main() {
             match std::fs::write("IBHT.ghd", "\n") {
                 Ok(_) => {
                     ok(format!("Blank IBHT has been written successfully."));
-                },
+                }
                 Err(e) => {
                     error(format!("Failed to write a blank IBHT. Error is below:"));
-                    eprintln!("{}",e);
-                },
+                    eprintln!("{}", e);
+                }
             };
-        },
+        }
 
         "build" => {
             let manifest_path = Path::new("Project.ghm");
             if !manifest_path.exists() {
-                error(format!("Could not find Project.ghm in the current directory. Try 'greathelm init'"));
+                error(format!(
+                    "Could not find Project.ghm in the current directory. Try 'greathelm init'"
+                ));
                 return;
             }
             let manifest = projectmanifest::read_manifest(manifest_path);
-            
+
             if !manifest.properties.contains_key("Project-Name") {
                 error(format!("Project does not have a name!"));
                 return;
@@ -122,15 +129,13 @@ fn main() {
             info(format!("Building project \"{project_name}\""));
             builder::build(manifest);
         }
-
         _ => {}
     }
-
 }
 
 pub fn get_project_type_from_aliases(text: String) -> String {
     match text.to_lowercase().as_str() {
         "c" | "the-one-and-only" => "C".into(),
-        _ => return "Unknown".into()
+        _ => return "Unknown".into(),
     }
 }

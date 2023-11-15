@@ -1,55 +1,54 @@
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 
-use crate::term::{info, error, ok};
+use crate::term::{error, info, ok};
 
 pub fn generate(project_type: String, cwd: PathBuf) {
     match project_type.as_str() {
         "C" => {
             info(format!("Using generator \"C\""));
             c_gen(cwd);
-        },
+        }
 
-        _=>{
+        _ => {
             error(format!("FATAL: Invalid project type passed to generator."));
             std::process::exit(1);
         }
     }
 }
 
-
 fn c_gen(_cwd: PathBuf) {
     match std::fs::create_dir("src") {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => {
             error(format!("Failed to create project! Error is below:"));
-            eprintln!("{}",e);
+            eprintln!("{}", e);
             std::process::exit(1);
-        },
-    }; 
+        }
+    };
 
     match std::fs::create_dir("lib") {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => {
             error(format!("Failed to create project! Error is below:"));
-            eprintln!("{}",e);
+            eprintln!("{}", e);
             std::process::exit(1);
-        },
+        }
     }
     match std::fs::create_dir("lib/include") {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => {
             error(format!("Failed to create project! Error is below:"));
-            eprintln!("{}",e);
+            eprintln!("{}", e);
             std::process::exit(1);
-        },
+        }
     }
     match std::fs::create_dir("lib/shared") {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => {
             error(format!("Failed to create project! Error is below:"));
-            eprintln!("{}",e);
+            eprintln!("{}", e);
             std::process::exit(1);
-        },
+        }
     }
 
     let main_c_contents = "#include <stdio.h>\n\
@@ -58,11 +57,11 @@ fn c_gen(_cwd: PathBuf) {
                                 \tprintf(\"Hello World!\\n\");\n\
                            }\n";
 
-    match std::fs::write(Path::new("src/main.c"),main_c_contents) {
-        Ok(_) => {},
+    match std::fs::write(Path::new("src/main.c"), main_c_contents) {
+        Ok(_) => {}
         Err(e) => {
             error(format!("Failed to create project! Error is below:"));
-            eprintln!("{}",e);
+            eprintln!("{}", e);
             std::process::exit(1);
         }
     };
