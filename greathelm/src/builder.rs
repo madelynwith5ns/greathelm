@@ -165,16 +165,16 @@ pub fn c_builder(manifest: ProjectManifest) {
 
     info(format!("LD {artifact}"));
     let mut ld_incantation = Command::new(ld.clone());
+    let mut prefix = "";
+    let mut suffix = "";
+
+    if emit == "shared" || emit == "dylib" {
+        prefix = "lib";
+        suffix = ".so";
+    }
     let ld_incantation = ld_incantation
         .arg("-o")
-        .arg(format!(
-            "build/{artifact}{}",
-            if emit == "shared" || emit == "dylib" {
-                ".so"
-            } else {
-                ""
-            }
-        ))
+        .arg(format!("build/{prefix}{artifact}{suffix}"))
         .args(ldflags.clone())
         .args(link)
         .arg("-I./lib/include")
