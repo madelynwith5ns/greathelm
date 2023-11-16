@@ -215,6 +215,13 @@ pub fn c_builder(manifest: ProjectManifest) {
         ld_incantation.arg("-shared");
     }
 
+    if manifest.directives.contains(&"no-link-libc".into()) {
+        ld_incantation.arg("-nostdlib");
+    }
+    if manifest.directives.contains(&"freestanding".into()) {
+        ld_incantation.arg("-ffreestanding");
+    }
+
     let ld_incantation = ld_incantation.spawn().unwrap().wait().unwrap();
 
     if ld_incantation.success() {

@@ -63,7 +63,7 @@ pub fn read_manifest(path: &Path) -> ProjectManifest {
     return ProjectManifest {
         properties,
         dependencies,
-        directives
+        directives,
     };
 }
 
