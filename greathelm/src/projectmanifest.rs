@@ -5,6 +5,7 @@ use crate::term::{error, ok};
 pub struct ProjectManifest {
     pub properties: HashMap<String, String>,
     pub dependencies: Vec<String>,
+    pub directives: Vec<String>,
 }
 
 pub fn create_manifest(project_name: String, project_type: String) {
@@ -26,6 +27,7 @@ pub fn create_manifest(project_name: String, project_type: String) {
 pub fn read_manifest(path: &Path) -> ProjectManifest {
     let mut properties: HashMap<String, String> = HashMap::new();
     let mut dependencies: Vec<String> = Vec::new();
+    let mut directives: Vec<String> = Vec::new();
 
     let raw_file = match std::fs::read_to_string(path) {
         Ok(data) => data,
@@ -44,6 +46,11 @@ pub fn read_manifest(path: &Path) -> ProjectManifest {
             dependencies.push(l.split_once("@Dependency ").unwrap().1.into());
             continue;
         }
+        if l.starts_with("@Directive ") {
+            directives.push(l.split_once("@Directive ").unwrap().1.into());
+            continue;
+        }
+
         if !l.contains("=") {
             continue;
         }
@@ -54,8 +61,9 @@ pub fn read_manifest(path: &Path) -> ProjectManifest {
     }
 
     return ProjectManifest {
-        properties: properties,
-        dependencies: dependencies,
+        properties,
+        dependencies,
+        directives
     };
 }
 
