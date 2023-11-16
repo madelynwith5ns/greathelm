@@ -51,7 +51,7 @@ pub fn c_builder(manifest: ProjectManifest) {
         Some(ld) => ld.to_owned(),
         None => "cc".into(),
     };
-    let opt = match manifest.properties.get("C-Opt-Level".into()) {
+    let opt = match manifest.properties.get("Compiler-Opt-Level".into()) {
         Some(opt) => opt.to_owned(),
         None => "2".into(),
     };
