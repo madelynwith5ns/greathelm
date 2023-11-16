@@ -70,8 +70,6 @@ fn c_mf_gen(project_name: String) -> String {
             Executable-Name={project_name}\n\
             Emit=binary\n\
             \n\
-            @Dependency !std
-            \n\
             Greathelm-Version={}\n",
         std::env!("CARGO_PKG_VERSION")
     )

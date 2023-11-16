@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    io::{Stdout, Write},
+    io::Write,
     path::{Path, PathBuf},
     process::Command,
     str::FromStr,

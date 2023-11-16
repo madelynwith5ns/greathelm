@@ -1,6 +1,6 @@
-use std::{collections::HashMap, fmt::format, fs::ReadDir, path::Path};
+use std::{collections::HashMap, fs::ReadDir, path::Path};
 
-use crate::term::{error, info, ok, warn};
+use crate::term::{error, info, ok};
 
 pub fn write_ibht() {
     let hashes = gen_hashtable();
