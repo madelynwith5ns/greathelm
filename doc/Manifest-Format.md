@@ -41,7 +41,7 @@ Dependency directives come in three forms:
 
 - `@Dependency sys:<dependency>` The `sys:` prefix denotes that the dependency should come from your system instead of the `lib/` directory. This uses `pkg-config`.
 
-`@Dependency <dependency>` A normal dependency with headers in `lib/include/` and binaries in `lib/shared/`.
+- `@Dependency <dependency>` A normal dependency with headers in `lib/include/` and binaries in `lib/shared/`.
 
 ### @Directive Directives
 
