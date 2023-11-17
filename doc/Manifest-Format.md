@@ -30,6 +30,7 @@ Properties are in the form of Key=Value pairs.
 - **Override-C-Linker** Specifies the linker binary to be used. Defaults to `cc` if unset.
 - **Additional-CC-Flags** Specifies additional C compiler flags to be used. Separated by a comma (,). Defaults to none.
 - **Additional-LD-Flags** Specifies additional C linker flags to be used. Separated by a comma (,). Defaults to none.
+- **C-Linker-Script** Specifies a custom linker script to be used.
 
 ### @Dependency Directives
 

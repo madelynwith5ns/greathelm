@@ -222,6 +222,14 @@ pub fn c_builder(manifest: ProjectManifest) {
         ld_incantation.arg("-ffreestanding");
     }
 
+    match manifest.properties.get("C-Linker-Script") {
+        Some(script) => {
+            ld_incantation.arg("-T");
+            ld_incantation.arg(script);
+        },
+        None => {},
+    }
+
     let ld_incantation = ld_incantation.spawn().unwrap().wait().unwrap();
 
     if ld_incantation.success() {
