@@ -38,7 +38,7 @@ Properties are in the form of Key=Value pairs.
 #### @Dependency Directives in C Projects
 Dependency directives come in three forms:
 
-- `@Dependency !<dependency>` The exclamation mark denotes this as a special dependency. This functionality is currently unused.
+- `@Dependency !<dependency>` The exclamation mark denotes this as a raw object dependency. These are located in the `lib/obj/` directory. Greathelm automatically appends `.o`. For example if you use `@Dependency !test` it will link `lib/obj/test.o`.
 
 - `@Dependency sys:<dependency>` The `sys:` prefix denotes that the dependency should come from your system instead of the `lib/` directory. This uses `pkg-config`.
 

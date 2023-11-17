@@ -50,6 +50,14 @@ fn c_gen(_cwd: PathBuf) {
             std::process::exit(1);
         }
     }
+    match std::fs::create_dir("lib/obj") {
+        Ok(_) => {}
+        Err(e) => {
+            error(format!("Failed to create project! Error is below:"));
+            eprintln!("{}", e);
+            std::process::exit(1);
+        }
+    }
 
     let main_c_contents = "#include <stdio.h>\n\
                            \n\

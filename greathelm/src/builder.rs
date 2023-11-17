@@ -172,6 +172,14 @@ pub fn c_builder(manifest: ProjectManifest) {
         prefix = "lib";
         suffix = ".so";
     }
+
+    for dep in &manifest.dependencies {
+        if !dep.starts_with("!") { continue; }
+        let dependency = dep.clone().split_off(1);
+        link.push(format!("lib/obj/{}.o", dependency));
+        info(format!("Linking with raw object {dependency}.o"));
+    }
+
     let ld_incantation = ld_incantation
         .arg("-o")
         .arg(format!("build/{prefix}{artifact}{suffix}"))
@@ -183,10 +191,7 @@ pub fn c_builder(manifest: ProjectManifest) {
         .stderr(std::process::Stdio::piped());
 
     for dep in manifest.dependencies {
-        if dep.starts_with("!") {
-            continue;
-        }
-
+        if dep.starts_with("!") { continue; }
         if dep.starts_with("sys:") {
             let dep = dep.split_once("sys:").unwrap().1;
             let pkgconf = Command::new("pkgconf")
@@ -230,13 +235,20 @@ pub fn c_builder(manifest: ProjectManifest) {
         None => {},
     }
 
-    let ld_incantation = ld_incantation.spawn().unwrap().wait().unwrap();
+    let ld_incantation = ld_incantation.output().unwrap();
 
-    if ld_incantation.success() {
-        ok(format!("Project successfully built!"));
-    } else {
-        error(format!("Project failed to build."));
-    }
+
+     print!("{}", String::from_utf8(ld_incantation.stdout).unwrap());
+     eprint!("{}", String::from_utf8(ld_incantation.stderr).unwrap());
+
+     std::io::stdout().flush().ok();
+     std::io::stderr().flush().ok();
+ 
+     if ld_incantation.status.success() {
+         ok(format!("Project successfully built!"));
+     } else {
+         error(format!("Project failed to build."));
+     }
 
     info(format!("Regenerating IBHT for future runs..."));
     ibht::write_ibht();
