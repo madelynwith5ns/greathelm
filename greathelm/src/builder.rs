@@ -150,8 +150,10 @@ pub fn c_builder(manifest: ProjectManifest) {
             f.file_name().unwrap().to_string_lossy()
         ));
 
-        print!("{}", String::from_utf8(cc_incantation.stderr).unwrap());
+        print!("{}", String::from_utf8(cc_incantation.stdout).unwrap());
+        eprint!("{}", String::from_utf8(cc_incantation.stderr).unwrap());
         std::io::stdout().flush().ok();
+        std::io::stderr().flush().ok();
 
         /*
         if cc_incantation.success() {
@@ -174,7 +176,9 @@ pub fn c_builder(manifest: ProjectManifest) {
     }
 
     for dep in &manifest.dependencies {
-        if !dep.starts_with("!") { continue; }
+        if !dep.starts_with("!") {
+            continue;
+        }
         let dependency = dep.clone().split_off(1);
         link.push(format!("lib/obj/{}.o", dependency));
         info(format!("Linking with raw object {dependency}.o"));
@@ -191,7 +195,9 @@ pub fn c_builder(manifest: ProjectManifest) {
         .stderr(std::process::Stdio::piped());
 
     for dep in manifest.dependencies {
-        if dep.starts_with("!") { continue; }
+        if dep.starts_with("!") {
+            continue;
+        }
         if dep.starts_with("sys:") {
             let dep = dep.split_once("sys:").unwrap().1;
             let pkgconf = Command::new("pkgconf")
@@ -231,24 +237,23 @@ pub fn c_builder(manifest: ProjectManifest) {
         Some(script) => {
             ld_incantation.arg("-T");
             ld_incantation.arg(script);
-        },
-        None => {},
+        }
+        None => {}
     }
 
     let ld_incantation = ld_incantation.output().unwrap();
 
+    print!("{}", String::from_utf8(ld_incantation.stdout).unwrap());
+    eprint!("{}", String::from_utf8(ld_incantation.stderr).unwrap());
 
-     print!("{}", String::from_utf8(ld_incantation.stdout).unwrap());
-     eprint!("{}", String::from_utf8(ld_incantation.stderr).unwrap());
+    std::io::stdout().flush().ok();
+    std::io::stderr().flush().ok();
 
-     std::io::stdout().flush().ok();
-     std::io::stderr().flush().ok();
- 
-     if ld_incantation.status.success() {
-         ok(format!("Project successfully built!"));
-     } else {
-         error(format!("Project failed to build."));
-     }
+    if ld_incantation.status.success() {
+        ok(format!("Project successfully built!"));
+    } else {
+        error(format!("Project failed to build."));
+    }
 
     info(format!("Regenerating IBHT for future runs..."));
     ibht::write_ibht();
