@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use crate::term::{error, ok};
 
-pub fn generate(_cwd: PathBuf) {
+pub fn generate(cwd: PathBuf) {
     match std::fs::create_dir("src") {
         Ok(_) => {}
         Err(e) => {
@@ -60,9 +60,15 @@ pub fn generate(_cwd: PathBuf) {
         }
     };
 
+    let project_name = match cwd.file_name() {
+        Some(s) => s.to_string_lossy().to_string(),
+        None => "example".into(),
+    };
+
     match std::fs::write(
         Path::new("Project.ghm"),
-        "# Greathelm Project Manifest\n\
+        format!(
+            "# Greathelm Project Manifest\n\
                          Project-Name={project_name}\n\
                          Project-Author=Example Author\n\
                          Project-Version=0.1.0-alpha\n\
@@ -72,6 +78,8 @@ pub fn generate(_cwd: PathBuf) {
                          Emit=binary\n\
                          \n\
                          Greathelm-Version={}\n",
+            env!("CARGO_PKG_VERSION")
+        ),
     ) {
         Ok(_) => {}
         Err(e) => {
