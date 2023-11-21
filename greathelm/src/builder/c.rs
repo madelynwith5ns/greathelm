@@ -1,48 +1,12 @@
-use std::{
-    collections::HashMap,
-    io::Write,
-    path::{Path, PathBuf},
-    process::Command,
-    str::FromStr,
-};
+use std::{collections::HashMap, io::Write, path::PathBuf, process::Command, str::FromStr};
 
 use crate::{
     ibht,
-    projectmanifest::ProjectManifest,
+    manifest::ProjectManifest,
     term::{error, info, ok, warn},
 };
 
 pub fn build(manifest: ProjectManifest) {
-    let project_type = manifest.properties.get("Project-Type").unwrap();
-
-    let build_dir = Path::new("build");
-    if !build_dir.exists() {
-        match std::fs::create_dir(build_dir) {
-            Ok(_) => {}
-            Err(e) => {
-                error(format!(
-                    "Failed to create project build directory! Error is below:"
-                ));
-                eprintln!("{}", e);
-                std::process::exit(1);
-            }
-        }
-    }
-
-    match project_type.as_str() {
-        "C" => {
-            c_builder(manifest);
-        }
-        _ => {
-            error(format!(
-                "An invalid project type was passed to the builder."
-            ));
-            return;
-        }
-    }
-}
-
-pub fn c_builder(manifest: ProjectManifest) {
     let cc = match manifest.properties.get("Override-C-Compiler".into()) {
         Some(cc) => cc.to_owned(),
         None => "cc".into(),
@@ -102,7 +66,7 @@ pub fn c_builder(manifest: ProjectManifest) {
         let path = PathBuf::from_str(k).unwrap();
         link.push(format!(
             "build/{}-{}.o",
-            path.file_name().unwrap().to_string_lossy(),
+            str::replace(path.display().to_string().as_str(), "/", "_"),
             hashes.get(k).unwrap()
         ));
 
@@ -126,13 +90,12 @@ pub fn c_builder(manifest: ProjectManifest) {
     let mut outs: Vec<String> = Vec::new();
 
     for f in rebuild.keys() {
-        info(format!("CC {}", f.display()));
         let cc_incantation = Command::new(cc.clone())
             .arg("-c")
             .arg("-o")
             .arg(format!(
                 "build/{}-{}.o",
-                f.file_name().unwrap().to_string_lossy(),
+                str::replace(f.as_path().display().to_string().as_str(), "/", "_"),
                 rebuild.get(f).unwrap()
             ))
             .arg(format!("-O{opt}"))
@@ -154,15 +117,12 @@ pub fn c_builder(manifest: ProjectManifest) {
         eprint!("{}", String::from_utf8(cc_incantation.stderr).unwrap());
         std::io::stdout().flush().ok();
         std::io::stderr().flush().ok();
-
-        /*
-        if cc_incantation.success() {
+        if cc_incantation.status.success() {
             ok(format!("CC {}", f.display()));
         } else {
             error(format!("CC {}", f.display()));
             std::process::exit(1);
         }
-        */
     }
 
     info(format!("LD {artifact}"));

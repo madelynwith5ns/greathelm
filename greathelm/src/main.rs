@@ -7,7 +7,7 @@ use crate::term::{error, info, warn};
 mod builder;
 mod generator;
 mod ibht;
-mod projectmanifest;
+mod manifest;
 mod term;
 
 fn main() {
@@ -84,9 +84,6 @@ fn main() {
 
             generator::generate(project_type.clone(), cdir);
 
-            info(format!("Writing project manifest..."));
-            projectmanifest::create_manifest(project_name, project_type);
-
             info(format!("Writing IBHT stub..."));
             match std::fs::write("IBHT.ghd", "\n") {
                 Ok(_) => {
@@ -107,7 +104,7 @@ fn main() {
                 ));
                 return;
             }
-            let manifest = projectmanifest::read_manifest(manifest_path);
+            let manifest = manifest::read_manifest(manifest_path);
 
             if !manifest.properties.contains_key("Project-Name") {
                 error(format!("Project does not have a name!"));
@@ -135,7 +132,7 @@ fn main() {
 
 pub fn get_project_type_from_aliases(text: String) -> String {
     match text.to_lowercase().as_str() {
-        "c" | "the-one-and-only" => "C".into(),
+        "c" => "C".into(),
         _ => return "Unknown".into(),
     }
 }

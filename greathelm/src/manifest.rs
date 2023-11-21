@@ -1,27 +1,11 @@
 use std::{collections::HashMap, path::Path};
 
-use crate::term::{error, ok};
+use crate::term::error;
 
 pub struct ProjectManifest {
     pub properties: HashMap<String, String>,
     pub dependencies: Vec<String>,
     pub directives: Vec<String>,
-}
-
-pub fn create_manifest(project_name: String, project_type: String) {
-    let contents = match project_type.as_str() {
-        _ => c_mf_gen(project_name),
-    };
-
-    match std::fs::write("Project.ghm", contents) {
-        Ok(_) => {
-            ok(format!("Succeeded in creating project manifest."));
-        }
-        Err(e) => {
-            error(format!("Failed to write project manifest. Error is below:"));
-            eprintln!("{}", e);
-        }
-    }
 }
 
 pub fn read_manifest(path: &Path) -> ProjectManifest {
@@ -65,20 +49,4 @@ pub fn read_manifest(path: &Path) -> ProjectManifest {
         dependencies,
         directives,
     };
-}
-
-fn c_mf_gen(project_name: String) -> String {
-    format!(
-        "# Greathelm Project Manifest\n\
-            Project-Name={project_name}\n\
-            Project-Author=Example Author\n\
-            Project-Version=0.1.0-alpha\n\
-            Project-Type=C\n\
-            Compiler-Opt-Level=2\n\
-            Executable-Name={project_name}\n\
-            Emit=binary\n\
-            \n\
-            Greathelm-Version={}\n",
-        std::env!("CARGO_PKG_VERSION")
-    )
 }
