@@ -12,8 +12,7 @@ pub fn write_ibht() {
     }
 
     match std::fs::write("IBHT.ghd", hashtable_file) {
-        Ok(_) => {
-        }
+        Ok(_) => {}
         Err(e) => {
             error(format!("Failed to write IBHT. Error is below:"));
             eprintln!("{}", e);

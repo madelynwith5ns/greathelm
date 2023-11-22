@@ -1,9 +1,10 @@
 use std::{collections::HashMap, io::Write, path::PathBuf, process::Command, str::FromStr};
 
 use crate::{
+    builder::parallel::ParallelBuild,
     ibht,
     manifest::ProjectManifest,
-    term::{error, info, ok, warn}, builder::parallel::ParallelBuild,
+    term::{error, info, ok, warn},
 };
 
 pub fn build(manifest: ProjectManifest) {
@@ -89,7 +90,14 @@ pub fn build(manifest: ProjectManifest) {
 
     let mut outs: Vec<String> = Vec::new();
 
-    let cpus: usize = std::thread::available_parallelism().unwrap().into();
+    let cpus: usize = match manifest.properties.get("run.build-parallelization") {
+        Some(s) => match s.parse() {
+            Ok(v) => v,
+            Err(_) => 1usize,
+        },
+        None => std::thread::available_parallelism().unwrap().into(),
+    };
+
     info(format!("Building in parallel with {cpus} CPUs..."));
     let mut build = ParallelBuild::new(cpus, rebuild.len());
 
@@ -100,18 +108,18 @@ pub fn build(manifest: ProjectManifest) {
         let cflags = cflags.clone();
         let opt = opt.clone();
         outs.push(format!(
-                "build/{}.o",
-                f.clone().file_name().unwrap().to_string_lossy()
-                ));
-        build.submit(move||{
+            "build/{}.o",
+            f.clone().file_name().unwrap().to_string_lossy()
+        ));
+        build.submit(move || {
             let cc_incantation = Command::new(cc.clone())
                 .arg("-c")
                 .arg("-o")
                 .arg(format!(
-                        "build/{}-{}.o",
-                        str::replace(f.as_path().display().to_string().as_str(), "/", "_"),
-                        file
-                        ))
+                    "build/{}-{}.o",
+                    str::replace(f.as_path().display().to_string().as_str(), "/", "_"),
+                    file
+                ))
                 .arg(format!("-O{opt}"))
                 .arg("-Wall")
                 .arg("-Werror")
@@ -133,7 +141,6 @@ pub fn build(manifest: ProjectManifest) {
                 std::process::exit(1);
             }
         });
-
     }
 
     build.wait();
