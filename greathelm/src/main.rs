@@ -104,7 +104,7 @@ fn main() {
                 ));
                 return;
             }
-            let manifest = manifest::read_manifest(manifest_path);
+            let mut manifest = manifest::read_manifest(manifest_path);
 
             if !manifest.properties.contains_key("Project-Name") {
                 error(format!("Project does not have a name!"));
@@ -113,6 +113,15 @@ fn main() {
             if !manifest.properties.contains_key("Project-Type") {
                 error(format!("Project does not have a type!"));
                 return;
+            }
+
+            for f in flags.keys() {
+                if !f.starts_with("run.") {
+                    continue;
+                }
+                manifest
+                    .properties
+                    .insert(f.clone(), flags.get(f).unwrap().clone());
             }
 
             let project_name = manifest.properties.get("Project-Name").unwrap();
