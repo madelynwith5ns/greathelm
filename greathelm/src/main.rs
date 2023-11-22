@@ -126,6 +126,7 @@ fn main() {
             info(format!("Building project \"{project_name}\""));
             builder::build(manifest);
         }
+
         _ => {}
     }
 }

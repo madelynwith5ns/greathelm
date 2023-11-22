@@ -3,7 +3,7 @@ use std::{collections::HashMap, io::Write, path::PathBuf, process::Command, str:
 use crate::{
     ibht,
     manifest::ProjectManifest,
-    term::{error, info, ok, warn},
+    term::{error, info, ok, warn}, builder::parallel::ParallelBuild,
 };
 
 pub fn build(manifest: ProjectManifest) {
@@ -24,7 +24,7 @@ pub fn build(manifest: ProjectManifest) {
         None => "executable.elf".into(),
     };
     let cflags = match manifest.properties.get("Additional-CC-Flags".into()) {
-        Some(cf) => cf.split(",").collect(),
+        Some(cf) => cf.split(",").map(|f| f.to_string()).collect(),
         None => {
             vec![]
         }
@@ -89,41 +89,54 @@ pub fn build(manifest: ProjectManifest) {
 
     let mut outs: Vec<String> = Vec::new();
 
-    for f in rebuild.keys() {
-        let cc_incantation = Command::new(cc.clone())
-            .arg("-c")
-            .arg("-o")
-            .arg(format!(
-                "build/{}-{}.o",
-                str::replace(f.as_path().display().to_string().as_str(), "/", "_"),
-                rebuild.get(f).unwrap()
-            ))
-            .arg(format!("-O{opt}"))
-            .arg("-Wall")
-            .arg("-Werror")
-            .arg("-Wpedantic")
-            .args(cflags.clone())
-            .arg(format!("{}", f.display()))
-            .stdout(std::process::Stdio::piped())
-            .stderr(std::process::Stdio::piped())
-            .output()
-            .unwrap();
-        outs.push(format!(
-            "build/{}.o",
-            f.file_name().unwrap().to_string_lossy()
-        ));
+    let cpus: usize = std::thread::available_parallelism().unwrap().into();
+    info(format!("Building in parallel with {cpus} CPUs..."));
+    let mut build = ParallelBuild::new(cpus, rebuild.len());
 
-        print!("{}", String::from_utf8(cc_incantation.stdout).unwrap());
-        eprint!("{}", String::from_utf8(cc_incantation.stderr).unwrap());
-        std::io::stdout().flush().ok();
-        std::io::stderr().flush().ok();
-        if cc_incantation.status.success() {
-            ok(format!("CC {}", f.display()));
-        } else {
-            error(format!("CC {}", f.display()));
-            std::process::exit(1);
-        }
+    for f in rebuild.keys() {
+        let file = rebuild.get(f).unwrap().to_owned();
+        let f = f.to_owned();
+        let cc = cc.clone();
+        let cflags = cflags.clone();
+        let opt = opt.clone();
+        outs.push(format!(
+                "build/{}.o",
+                f.clone().file_name().unwrap().to_string_lossy()
+                ));
+        build.submit(move||{
+            let cc_incantation = Command::new(cc.clone())
+                .arg("-c")
+                .arg("-o")
+                .arg(format!(
+                        "build/{}-{}.o",
+                        str::replace(f.as_path().display().to_string().as_str(), "/", "_"),
+                        file
+                        ))
+                .arg(format!("-O{opt}"))
+                .arg("-Wall")
+                .arg("-Werror")
+                .arg("-Wpedantic")
+                .args(cflags.clone())
+                .arg(format!("{}", f.display()))
+                .stdout(std::process::Stdio::piped())
+                .stderr(std::process::Stdio::piped())
+                .output()
+                .unwrap();
+            print!("{}", String::from_utf8(cc_incantation.stdout).unwrap());
+            eprint!("{}", String::from_utf8(cc_incantation.stderr).unwrap());
+            std::io::stdout().flush().ok();
+            std::io::stderr().flush().ok();
+            if cc_incantation.status.success() {
+                ok(format!("CC {}", f.display()));
+            } else {
+                error(format!("CC {}", f.display()));
+                std::process::exit(1);
+            }
+        });
+
     }
+
+    build.wait();
 
     info(format!("LD {artifact}"));
     let mut ld_incantation = Command::new(ld.clone());

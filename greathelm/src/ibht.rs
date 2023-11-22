@@ -1,11 +1,9 @@
 use std::{collections::HashMap, fs::ReadDir, path::Path};
 
-use crate::term::{error, info, ok};
+use crate::term::error;
 
 pub fn write_ibht() {
     let hashes = gen_hashtable();
-
-    info(format!("Writing IBHT to disk..."));
 
     let mut hashtable_file: String = "".into();
 
@@ -15,7 +13,6 @@ pub fn write_ibht() {
 
     match std::fs::write("IBHT.ghd", hashtable_file) {
         Ok(_) => {
-            ok(format!("Finished writing IBHT!"));
         }
         Err(e) => {
             error(format!("Failed to write IBHT. Error is below:"));
@@ -73,7 +70,6 @@ fn recurse_dir(dir: ReadDir, hashes: &mut HashMap<String, String>) {
                     }
                 };
                 let hash = md5::compute(contents);
-                info(format!("Hashed file {} as {:x}", f.path().display(), &hash));
                 hashes.insert(f.path().display().to_string(), format!("{:x}", hash));
             }
             Err(_) => {

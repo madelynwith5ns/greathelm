@@ -3,6 +3,7 @@ use std::path::Path;
 use crate::{manifest::ProjectManifest, term::error};
 
 pub mod c;
+pub mod parallel;
 
 pub fn build(manifest: ProjectManifest) {
     let project_type = manifest.properties.get("Project-Type").unwrap();
