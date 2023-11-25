@@ -8,6 +8,7 @@ All runtime flags are below.
 #### All project typees
 - **project-name***=string* This is used when generating a new project.
 - **project-type***=string* This is used when generating a new project.
+- **build-cpus***=int* Sets the number of parallel jobs to run when compiling a project.
 
 #### C
 - **debug-info***=boolean* This tells the compiler to compile with debug info enabled.

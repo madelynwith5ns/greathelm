@@ -122,7 +122,7 @@ pub fn build(manifest: ProjectManifest) {
     let mut outs: Vec<String> = Vec::new();
 
     // setup parallel build
-    let cpus: usize = match manifest.properties.get("run.build-parallelization") {
+    let cpus: usize = match manifest.properties.get("build-cpus") {
         Some(s) => match s.parse() {
             Ok(v) => v,
             Err(_) => 1usize,
