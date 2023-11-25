@@ -49,6 +49,16 @@ pub fn build(manifest: ProjectManifest) {
         warn(format!("Unrecognized EMIT. Defaulting to binary."));
         emit = "binary".into();
     } // output type. binary/executable = normal executable, shared/dylib = .so shared object
+    let debug_info = match manifest.properties.get("run.debug_info".into()) {
+        Some(di) => {
+            if di == "true" {
+                true
+            } else {
+                false
+            }
+        },
+        None => { false },
+    }; // debug info (-g)
 
     info(format!("Using CC \"{cc}\""));
     info(format!("Using LD \"{ld}\""));
@@ -116,8 +126,8 @@ pub fn build(manifest: ProjectManifest) {
             f.clone().file_name().unwrap().to_string_lossy()
         ));
         build.submit(move || {
-            let cc_incantation = Command::new(cc.clone())
-                .arg("-c") // dont link
+            let mut cc_incantation = Command::new(cc.clone());
+            cc_incantation.arg("-c") // dont link
                 .arg("-o") // output
                 .arg(format!(
                     "build/{}-{}.o",
@@ -127,7 +137,14 @@ pub fn build(manifest: ProjectManifest) {
                 .arg(format!("-O{opt}")) // -Oopt from earlier
                 .arg("-Wall") // -Wall
                 .args(cflags.clone()) // the funny cflags
-                .arg(format!("{}", f.display())) // actual file
+                .arg(format!("{}", f.display())); // actual file 
+           
+            // debug information
+            if debug_info {
+                cc_incantation.arg("-g");
+            }
+
+            let cc_incantation = cc_incantation
                 .stdout(std::process::Stdio::piped())
                 .stderr(std::process::Stdio::piped())
                 .output()
