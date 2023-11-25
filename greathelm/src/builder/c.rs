@@ -56,9 +56,19 @@ pub fn build(manifest: ProjectManifest) {
             } else {
                 false
             }
-        },
-        None => { false },
+        }
+        None => false,
     }; // debug info (-g)
+    let force_full_rebuild = match manifest.properties.get("run.force_full_rebuild".into()) {
+        Some(di) => {
+            if di == "true" {
+                true
+            } else {
+                false
+            }
+        }
+        None => false,
+    }; // force a complete rebuild. (don't reuse old objects)
 
     info(format!("Using CC \"{cc}\""));
     info(format!("Using LD \"{ld}\""));
@@ -82,6 +92,15 @@ pub fn build(manifest: ProjectManifest) {
             str::replace(path.display().to_string().as_str(), "/", "_"),
             hashes.get(k).unwrap()
         ));
+
+        if force_full_rebuild {
+            info(format!("Running a full rebuild. {k} will be rebuilt."));
+            rebuild.insert(
+                PathBuf::from_str(k).unwrap(),
+                hashes.get(k).unwrap().to_owned(),
+            );
+            continue;
+        }
 
         if !ibht.contains_key(k) {
             info(format!("File {k} changed. It will be rebuilt."));
@@ -127,7 +146,8 @@ pub fn build(manifest: ProjectManifest) {
         ));
         build.submit(move || {
             let mut cc_incantation = Command::new(cc.clone());
-            cc_incantation.arg("-c") // dont link
+            cc_incantation
+                .arg("-c") // dont link
                 .arg("-o") // output
                 .arg(format!(
                     "build/{}-{}.o",
@@ -137,8 +157,8 @@ pub fn build(manifest: ProjectManifest) {
                 .arg(format!("-O{opt}")) // -Oopt from earlier
                 .arg("-Wall") // -Wall
                 .args(cflags.clone()) // the funny cflags
-                .arg(format!("{}", f.display())); // actual file 
-           
+                .arg(format!("{}", f.display())); // actual file
+
             // debug information
             if debug_info {
                 cc_incantation.arg("-g");
@@ -153,7 +173,8 @@ pub fn build(manifest: ProjectManifest) {
             eprint!("{}", String::from_utf8(cc_incantation.stderr).unwrap());
             std::io::stdout().flush().ok();
             std::io::stderr().flush().ok();
-            if cc_incantation.status.success() { // result message
+            if cc_incantation.status.success() {
+                // result message
                 ok(format!("CC {}", f.display()));
             } else {
                 error(format!("CC {}", f.display()));
