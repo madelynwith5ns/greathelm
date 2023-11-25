@@ -49,7 +49,7 @@ pub fn build(manifest: ProjectManifest) {
         warn(format!("Unrecognized EMIT. Defaulting to binary."));
         emit = "binary".into();
     } // output type. binary/executable = normal executable, shared/dylib = .so shared object
-    let debug_info = match manifest.properties.get("run.debug_info".into()) {
+    let debug_info = match manifest.properties.get("debug-info".into()) {
         Some(di) => {
             if di == "true" {
                 true
@@ -59,7 +59,7 @@ pub fn build(manifest: ProjectManifest) {
         }
         None => false,
     }; // debug info (-g)
-    let force_full_rebuild = match manifest.properties.get("run.force_full_rebuild".into()) {
+    let force_full_rebuild = match manifest.properties.get("force-full-rebuild".into()) {
         Some(di) => {
             if di == "true" {
                 true

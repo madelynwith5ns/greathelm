@@ -116,9 +116,6 @@ fn main() {
             }
 
             for f in flags.keys() {
-                if !f.starts_with("run.") {
-                    continue;
-                }
                 manifest
                     .properties
                     .insert(f.clone(), flags.get(f).unwrap().clone());
