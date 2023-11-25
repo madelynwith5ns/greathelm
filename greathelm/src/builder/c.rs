@@ -8,34 +8,35 @@ use crate::{
 };
 
 pub fn build(manifest: ProjectManifest) {
+    // Settings
     let cc = match manifest.properties.get("Override-C-Compiler".into()) {
         Some(cc) => cc.to_owned(),
         None => "cc".into(),
-    };
+    }; // compiler
     let ld = match manifest.properties.get("Override-C-Linker".into()) {
         Some(ld) => ld.to_owned(),
         None => "cc".into(),
-    };
+    }; // linker
     let opt = match manifest.properties.get("Compiler-Opt-Level".into()) {
         Some(opt) => opt.to_owned(),
         None => "2".into(),
-    };
+    }; // -O opt level
     let artifact = match manifest.properties.get("Executable-Name".into()) {
         Some(artifact) => artifact.to_owned(),
         None => "executable.elf".into(),
-    };
+    }; // output binary name
     let cflags = match manifest.properties.get("Additional-CC-Flags".into()) {
         Some(cf) => cf.split(",").map(|f| f.to_string()).collect(),
         None => {
             vec![]
         }
-    };
+    }; // CFLAGS comma separated
     let ldflags = match manifest.properties.get("Additional-LD-Flags".into()) {
         Some(ldf) => ldf.split(",").collect(),
         None => {
             vec![]
         }
-    };
+    }; // LDFLAGS comma separated
     let mut emit = match manifest.properties.get("Emit".into()) {
         Some(emit) => emit.to_owned(),
         None => "binary".into(),
@@ -47,11 +48,12 @@ pub fn build(manifest: ProjectManifest) {
     } else {
         warn(format!("Unrecognized EMIT. Defaulting to binary."));
         emit = "binary".into();
-    }
+    } // output type. binary/executable = normal executable, shared/dylib = .so shared object
 
     info(format!("Using CC \"{cc}\""));
     info(format!("Using LD \"{ld}\""));
 
+    // find things that changed and should be rebuilt
     info(format!("Hashing project files..."));
     let hashes = ibht::gen_hashtable();
     let ibht = ibht::read_ibht();
@@ -90,6 +92,7 @@ pub fn build(manifest: ProjectManifest) {
 
     let mut outs: Vec<String> = Vec::new();
 
+    // setup parallel build
     let cpus: usize = match manifest.properties.get("run.build-parallelization") {
         Some(s) => match s.parse() {
             Ok(v) => v,
@@ -101,6 +104,7 @@ pub fn build(manifest: ProjectManifest) {
     info(format!("Building in parallel with {cpus} CPUs..."));
     let mut build = ParallelBuild::new(cpus, rebuild.len());
 
+    // actually build all the things
     for f in rebuild.keys() {
         let file = rebuild.get(f).unwrap().to_owned();
         let f = f.to_owned();
@@ -113,19 +117,17 @@ pub fn build(manifest: ProjectManifest) {
         ));
         build.submit(move || {
             let cc_incantation = Command::new(cc.clone())
-                .arg("-c")
-                .arg("-o")
+                .arg("-c") // dont link
+                .arg("-o") // output
                 .arg(format!(
                     "build/{}-{}.o",
                     str::replace(f.as_path().display().to_string().as_str(), "/", "_"),
                     file
                 ))
-                .arg(format!("-O{opt}"))
-                .arg("-Wall")
-                .arg("-Werror")
-                .arg("-Wpedantic")
-                .args(cflags.clone())
-                .arg(format!("{}", f.display()))
+                .arg(format!("-O{opt}")) // -Oopt from earlier
+                .arg("-Wall") // -Wall
+                .args(cflags.clone()) // the funny cflags
+                .arg(format!("{}", f.display())) // actual file
                 .stdout(std::process::Stdio::piped())
                 .stderr(std::process::Stdio::piped())
                 .output()
@@ -134,7 +136,7 @@ pub fn build(manifest: ProjectManifest) {
             eprint!("{}", String::from_utf8(cc_incantation.stderr).unwrap());
             std::io::stdout().flush().ok();
             std::io::stderr().flush().ok();
-            if cc_incantation.status.success() {
+            if cc_incantation.status.success() { // result message
                 ok(format!("CC {}", f.display()));
             } else {
                 error(format!("CC {}", f.display()));
@@ -143,8 +145,10 @@ pub fn build(manifest: ProjectManifest) {
         });
     }
 
+    // wait for compiling to finish
     build.wait();
 
+    // link
     info(format!("LD {artifact}"));
     let mut ld_incantation = Command::new(ld.clone());
     let mut prefix = "";
@@ -155,6 +159,7 @@ pub fn build(manifest: ProjectManifest) {
         suffix = ".so";
     }
 
+    // raw object (.o) dependencies
     for dep in &manifest.dependencies {
         if !dep.starts_with("!") {
             continue;
@@ -169,11 +174,12 @@ pub fn build(manifest: ProjectManifest) {
         .arg(format!("build/{prefix}{artifact}{suffix}"))
         .args(ldflags.clone())
         .args(link)
-        .arg("-I./lib/include")
-        .arg("-L./lib/shared")
+        .arg("-I./lib/include") // local lib headers
+        .arg("-L./lib/shared") // local lib binaries
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped());
 
+    // normal dependencies
     for dep in manifest.dependencies {
         if dep.starts_with("!") {
             continue;
@@ -202,10 +208,12 @@ pub fn build(manifest: ProjectManifest) {
         }
     }
 
+    // dylibs
     if emit == "shared" || emit == "dylib" {
         ld_incantation.arg("-shared");
     }
 
+    // no standard lib directives
     if manifest.directives.contains(&"no-link-libc".into()) {
         ld_incantation.arg("-nostdlib");
     }
@@ -213,6 +221,7 @@ pub fn build(manifest: ProjectManifest) {
         ld_incantation.arg("-ffreestanding");
     }
 
+    // custom linker script
     match manifest.properties.get("C-Linker-Script") {
         Some(script) => {
             ld_incantation.arg("-T");
@@ -221,6 +230,7 @@ pub fn build(manifest: ProjectManifest) {
         None => {}
     }
 
+    // finally, actually link
     let ld_incantation = ld_incantation.output().unwrap();
 
     print!("{}", String::from_utf8(ld_incantation.stdout).unwrap());
