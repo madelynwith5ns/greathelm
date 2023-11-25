@@ -34,7 +34,6 @@ Properties are in the form of Key=Value pairs.
 
 ### @Dependency Directives
 
-
 #### @Dependency Directives in C Projects
 Dependency directives come in three forms:
 
