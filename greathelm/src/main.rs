@@ -8,6 +8,7 @@ mod builder;
 mod generator;
 mod ibht;
 mod manifest;
+mod module;
 mod script;
 mod term;
 
@@ -128,6 +129,11 @@ fn main() {
             if get_project_type_from_aliases(project_type.clone()) == "Unknown" {
                 error(format!("Project is of an unknown type."));
                 return;
+            }
+
+            info(format!("Building modules..."));
+            for module in &manifest.modules {
+                module.build();
             }
 
             info(format!("Building project \"{project_name}\""));

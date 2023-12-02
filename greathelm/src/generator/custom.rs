@@ -39,7 +39,11 @@ pub fn generate(cwd: PathBuf) {
             std::process::exit(1);
         }
     };
-    std::fs::set_permissions(Path::new("scripts/prebuild.sh"), Permissions::from_mode(0o777)).ok();
+    std::fs::set_permissions(
+        Path::new("scripts/prebuild.sh"),
+        Permissions::from_mode(0o777),
+    )
+    .ok();
 
     match std::fs::write(
         Path::new("scripts/build.sh"),
