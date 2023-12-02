@@ -141,6 +141,7 @@ fn main() {
 pub fn get_project_type_from_aliases(text: String) -> String {
     match text.to_lowercase().as_str() {
         "c" => "C".into(),
+        "custom" | "non-greathelm" | "buildscripts" => "Custom".into(),
         _ => return "Unknown".into(),
     }
 }

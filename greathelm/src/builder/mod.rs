@@ -3,6 +3,7 @@ use std::path::Path;
 use crate::{manifest::ProjectManifest, term::error};
 
 pub mod c;
+pub mod custom;
 pub mod parallel;
 
 pub fn build(manifest: ProjectManifest) {
@@ -26,6 +27,10 @@ pub fn build(manifest: ProjectManifest) {
         "C" => {
             c::build(manifest);
         }
+        "Custom" => {
+            custom::build(manifest);
+        }
+
         _ => {
             error(format!(
                 "An invalid project type was passed to the builder."
