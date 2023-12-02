@@ -53,3 +53,25 @@ The C builder currently recognizes two @Directives:
 - **@Directive no-link-libc** This directive specifies to not link libc into the project. Translates to `-nostdlib`.
 
 - **@Directive freestanding** This directive translates to the `-ffreestanding` cc flag.
+
+### @Module Directives
+
+@Module directives specify a sub-project used as a component in a larger project. They are in the following format:
+
+```ghm
+@Module <name> <components...>
+```
+
+An individual module component uses the following format:
+
+```ghm
+<path in parent>:<path in module>
+```
+
+For example, to include the artifact `build/libexample.so` from the `example` module as `lib/shared/libexample.so` in your project and the header `src/example.h` from the same module as `lib/include/example.h` you would use the following syntax:
+
+```ghm
+@Module example lib/shared/libexample.so:build/libexample.so lib/include/example.h:src/example.h
+```
+
+Module components can be directories if needed.
