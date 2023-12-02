@@ -59,12 +59,21 @@ impl Module {
             match path.try_exists() {
                 Ok(exists) => {
                     if exists {
-                        match std::fs::copy(path, Path::new(f)) {
-                            Ok(_) => {}
-                            Err(_) => {
-                                error(format!("Failed getting file \"{f}\" from module \"{}\": Failed to copy", self.module_name));
+                        if path.is_dir() {
+                            match copy_dir(&path, Path::new(f)) {
+                                Ok(_) => {}
+                                Err(_) => {
+                                    error(format!("Failed getting file \"{f}\" from module \"{}\": Failed to copy", self.module_name));
+                                }
                             }
-                        };
+                        } else {
+                            match std::fs::copy(&path, Path::new(f)) {
+                                Ok(_) => {}
+                                Err(_) => {
+                                    error(format!("Failed getting file \"{f}\" from module \"{}\": Failed to copy", self.module_name));
+                                }
+                            };
+                        }
                     }
                 }
                 Err(_) => {
@@ -76,4 +85,19 @@ impl Module {
             }
         }
     }
+}
+
+fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> std::io::Result<()> {
+    std::fs::create_dir_all(&to)?;
+    for entry in std::fs::read_dir(from)? {
+        let entry = entry?;
+        let file_type = entry.file_type()?;
+        if file_type.is_dir() {
+            copy_dir(entry.path(), to.as_ref().join(entry.file_name()))?;
+        } else {
+            std::fs::copy(entry.path(), to.as_ref().join(entry.file_name()))?;
+        }
+    }
+
+    Ok(())
 }
