@@ -8,6 +8,7 @@ mod builder;
 mod generator;
 mod ibht;
 mod manifest;
+mod script;
 mod term;
 
 fn main() {

@@ -4,10 +4,13 @@ use crate::{
     builder::parallel::ParallelBuild,
     ibht,
     manifest::ProjectManifest,
+    script,
     term::{error, info, ok, warn},
 };
 
 pub fn build(manifest: ProjectManifest) {
+    script::run_script("prebuild", vec![]);
+
     // Settings
     let cc = match manifest.properties.get("Override-C-Compiler".into()) {
         Some(cc) => cc.to_owned(),
@@ -145,40 +148,54 @@ pub fn build(manifest: ProjectManifest) {
             f.clone().file_name().unwrap().to_string_lossy()
         ));
         build.submit(move || {
-            let mut cc_incantation = Command::new(cc.clone());
-            cc_incantation
-                .arg("-c") // dont link
-                .arg("-o") // output
-                .arg(format!(
-                    "build/{}-{}.o",
-                    str::replace(f.as_path().display().to_string().as_str(), "/", "_"),
-                    file
-                ))
-                .arg(format!("-O{opt}")) // -Oopt from earlier
-                .arg("-Wall") // -Wall
-                .args(cflags.clone()) // the funny cflags
-                .arg(format!("{}", f.display())); // actual file
-
-            // debug information
-            if debug_info {
-                cc_incantation.arg("-g");
-            }
-
-            let cc_incantation = cc_incantation
-                .stdout(std::process::Stdio::piped())
-                .stderr(std::process::Stdio::piped())
-                .output()
-                .unwrap();
-            print!("{}", String::from_utf8(cc_incantation.stdout).unwrap());
-            eprint!("{}", String::from_utf8(cc_incantation.stderr).unwrap());
-            std::io::stdout().flush().ok();
-            std::io::stderr().flush().ok();
-            if cc_incantation.status.success() {
-                // result message
-                ok(format!("CC {}", f.display()));
+            if script::has_script("compiler") {
+                script::run_script(
+                    "compiler",
+                    vec![
+                        format!("{}", f.display()),
+                        format!(
+                            "build/{}-{}.o",
+                            str::replace(f.as_path().display().to_string().as_str(), "/", "_"),
+                            file
+                        ),
+                    ],
+                );
             } else {
-                error(format!("CC {}", f.display()));
-                std::process::exit(1);
+                let mut cc_incantation = Command::new(cc.clone());
+                cc_incantation
+                    .arg("-c") // dont link
+                    .arg("-o") // output
+                    .arg(format!(
+                        "build/{}-{}.o",
+                        str::replace(f.as_path().display().to_string().as_str(), "/", "_"),
+                        file
+                    ))
+                    .arg(format!("-O{opt}")) // -Oopt from earlier
+                    .arg("-Wall") // -Wall
+                    .args(cflags.clone()) // the funny cflags
+                    .arg(format!("{}", f.display())); // actual file
+
+                // debug information
+                if debug_info {
+                    cc_incantation.arg("-g");
+                }
+
+                let cc_incantation = cc_incantation
+                    .stdout(std::process::Stdio::piped())
+                    .stderr(std::process::Stdio::piped())
+                    .output()
+                    .unwrap();
+                print!("{}", String::from_utf8(cc_incantation.stdout).unwrap());
+                eprint!("{}", String::from_utf8(cc_incantation.stderr).unwrap());
+                std::io::stdout().flush().ok();
+                std::io::stderr().flush().ok();
+                if cc_incantation.status.success() {
+                    // result message
+                    ok(format!("CC {}", f.display()));
+                } else {
+                    error(format!("CC {}", f.display()));
+                    std::process::exit(1);
+                }
             }
         });
     }
@@ -188,7 +205,7 @@ pub fn build(manifest: ProjectManifest) {
 
     // link
     info(format!("LD {artifact}"));
-    let mut ld_incantation = Command::new(ld.clone());
+
     let mut prefix = "";
     let mut suffix = "";
 
@@ -197,90 +214,98 @@ pub fn build(manifest: ProjectManifest) {
         suffix = ".so";
     }
 
-    // raw object (.o) dependencies
-    for dep in &manifest.dependencies {
-        if !dep.starts_with("!") {
-            continue;
-        }
-        let dependency = dep.clone().split_off(1);
-        link.push(format!("lib/obj/{}.o", dependency));
-        info(format!("Linking with raw object {dependency}.o"));
-    }
-
-    let ld_incantation = ld_incantation
-        .arg("-o")
-        .arg(format!("build/{prefix}{artifact}{suffix}"))
-        .args(ldflags.clone())
-        .args(link)
-        .arg("-I./lib/include") // local lib headers
-        .arg("-L./lib/shared") // local lib binaries
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped());
-
-    // normal dependencies
-    for dep in manifest.dependencies {
-        if dep.starts_with("!") {
-            continue;
-        }
-        if dep.starts_with("sys:") {
-            let dep = dep.split_once("sys:").unwrap().1;
-            let pkgconf = Command::new("pkgconf")
-                .arg("--libs")
-                .arg("--cflags")
-                .arg(dep)
-                .output()
-                .unwrap();
-            let dep_ld_flags = String::from_utf8(pkgconf.stdout).unwrap();
-            let dep_ld_flags = dep_ld_flags.split(" ");
-            for flag in dep_ld_flags {
-                if flag == " " {
-                    continue;
-                }
-                if flag == "\n" {
-                    continue;
-                }
-                ld_incantation.arg(flag);
-            }
-        } else {
-            ld_incantation.arg(format!("-l{dep}"));
-        }
-    }
-
-    // dylibs
-    if emit == "shared" || emit == "dylib" {
-        ld_incantation.arg("-shared");
-    }
-
-    // no standard lib directives
-    if manifest.directives.contains(&"no-link-libc".into()) {
-        ld_incantation.arg("-nostdlib");
-    }
-    if manifest.directives.contains(&"freestanding".into()) {
-        ld_incantation.arg("-ffreestanding");
-    }
-
-    // custom linker script
-    match manifest.properties.get("C-Linker-Script") {
-        Some(script) => {
-            ld_incantation.arg("-T");
-            ld_incantation.arg(script);
-        }
-        None => {}
-    }
-
-    // finally, actually link
-    let ld_incantation = ld_incantation.output().unwrap();
-
-    print!("{}", String::from_utf8(ld_incantation.stdout).unwrap());
-    eprint!("{}", String::from_utf8(ld_incantation.stderr).unwrap());
-
-    std::io::stdout().flush().ok();
-    std::io::stderr().flush().ok();
-
-    if ld_incantation.status.success() {
-        ok(format!("Project successfully built!"));
+    if script::has_script("linker") {
+        let mut args: Vec<String> = vec![format!("build/{prefix}{artifact}{suffix}")];
+        args.append(&mut link);
+        script::run_script("linker", args);
     } else {
-        error(format!("Project failed to build."));
+        let mut ld_incantation = Command::new(ld.clone());
+
+        // raw object (.o) dependencies
+        for dep in &manifest.dependencies {
+            if !dep.starts_with("!") {
+                continue;
+            }
+            let dependency = dep.clone().split_off(1);
+            link.push(format!("lib/obj/{}.o", dependency));
+            info(format!("Linking with raw object {dependency}.o"));
+        }
+
+        let ld_incantation = ld_incantation
+            .arg("-o")
+            .arg(format!("build/{prefix}{artifact}{suffix}"))
+            .args(ldflags.clone())
+            .args(link)
+            .arg("-I./lib/include") // local lib headers
+            .arg("-L./lib/shared") // local lib binaries
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped());
+
+        // normal dependencies
+        for dep in manifest.dependencies {
+            if dep.starts_with("!") {
+                continue;
+            }
+            if dep.starts_with("sys:") {
+                let dep = dep.split_once("sys:").unwrap().1;
+                let pkgconf = Command::new("pkgconf")
+                    .arg("--libs")
+                    .arg("--cflags")
+                    .arg(dep)
+                    .output()
+                    .unwrap();
+                let dep_ld_flags = String::from_utf8(pkgconf.stdout).unwrap();
+                let dep_ld_flags = dep_ld_flags.split(" ");
+                for flag in dep_ld_flags {
+                    if flag == " " {
+                        continue;
+                    }
+                    if flag == "\n" {
+                        continue;
+                    }
+                    ld_incantation.arg(flag);
+                }
+            } else {
+                ld_incantation.arg(format!("-l{dep}"));
+            }
+        }
+
+        // dylibs
+        if emit == "shared" || emit == "dylib" {
+            ld_incantation.arg("-shared");
+        }
+
+        // no standard lib directives
+        if manifest.directives.contains(&"no-link-libc".into()) {
+            ld_incantation.arg("-nostdlib");
+        }
+        if manifest.directives.contains(&"freestanding".into()) {
+            ld_incantation.arg("-ffreestanding");
+        }
+
+        // custom linker script
+        match manifest.properties.get("C-Linker-Script") {
+            Some(script) => {
+                ld_incantation.arg("-T");
+                ld_incantation.arg(script);
+            }
+            None => {}
+        }
+
+        // finally, actually link
+        let ld_incantation = ld_incantation.output().unwrap();
+
+        print!("{}", String::from_utf8(ld_incantation.stdout).unwrap());
+        eprint!("{}", String::from_utf8(ld_incantation.stderr).unwrap());
+
+        std::io::stdout().flush().ok();
+        std::io::stderr().flush().ok();
+
+        if ld_incantation.status.success() {
+            ok(format!("Project successfully built!"));
+        } else {
+            error(format!("Project failed to build."));
+        }
     }
 
     info(format!("Regenerating IBHT for future runs..."));
