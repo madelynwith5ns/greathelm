@@ -5,7 +5,10 @@ use std::{
     str::FromStr,
 };
 
-use crate::term::{error, info};
+use crate::{
+    script,
+    term::{error, info},
+};
 
 pub struct Module {
     pub module_name: String, // name of the module
@@ -27,6 +30,7 @@ impl Module {
             ));
         }
 
+        script::run_script("prebuild-module", vec![self.module_name.clone()]);
         let module_root = PathBuf::from_str(&format!("modules/{}", self.module_name)).unwrap();
         // smaller greathelm, lesserhelm if you will
         let greathelm_subprocess = match Command::new(std::env::current_exe().unwrap())
@@ -48,6 +52,7 @@ impl Module {
             error(format!("Module \"{}\" failed to build.", self.module_name));
             return;
         }
+        script::run_script("postbuild-module", vec![self.module_name.clone()]);
 
         for f in self.files.keys() {
             let path = PathBuf::from_str(&format!(
@@ -84,6 +89,8 @@ impl Module {
                 }
             }
         }
+
+        script::run_script("postfetch-module", vec![self.module_name.clone()]);
     }
 }
 

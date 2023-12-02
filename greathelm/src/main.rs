@@ -132,9 +132,11 @@ fn main() {
             }
 
             info(format!("Building modules..."));
+            script::run_script("pre-modules", vec![]);
             for module in &manifest.modules {
                 module.build();
             }
+            script::run_script("post-modules", vec![]);
 
             info(format!("Building project \"{project_name}\""));
             builder::build(manifest);
