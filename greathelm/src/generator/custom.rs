@@ -26,10 +26,10 @@ pub fn generate(cwd: PathBuf) {
     }
 
     match std::fs::write(
-        Path::new("scripts/setup.sh"),
+        Path::new("scripts/prebuild.sh"),
         format!(
             "#!/usr/bin/bash\n\
-                         echo !! setup.sh has not been written yet !!\n"
+                         echo !! prebuild.sh has not been written yet !!\n"
         ),
     ) {
         Ok(_) => {}
@@ -39,7 +39,7 @@ pub fn generate(cwd: PathBuf) {
             std::process::exit(1);
         }
     };
-    std::fs::set_permissions(Path::new("scripts/setup.sh"), Permissions::from_mode(0o777)).ok();
+    std::fs::set_permissions(Path::new("scripts/prebuild.sh"), Permissions::from_mode(0o777)).ok();
 
     match std::fs::write(
         Path::new("scripts/build.sh"),

@@ -20,7 +20,7 @@ pub fn build(manifest: ProjectManifest) {
         }
     }
 
-    script::run_script("setup", vec![]);
+    script::run_script("prebuild", vec![]);
 
     let outfile = match manifest.properties.get("Output-Name") {
         Some(v) => {
