@@ -73,10 +73,8 @@ pub fn build(manifest: ProjectManifest) {
         None => false,
     }; // force a complete rebuild. (don't reuse old objects)
     let stdlibflavor: String = match manifest.properties.get("C++-Stdlib-Flavor") {
-        Some(std) => {
-            std.clone()
-        },
-        None => "stdc++".into()
+        Some(std) => std.clone(),
+        None => "stdc++".into(),
     };
 
     info(format!("Using CC \"{cc}\""));
@@ -282,7 +280,6 @@ pub fn build(manifest: ProjectManifest) {
         if emit == "shared" || emit == "dylib" {
             ld_incantation.arg("-shared");
         }
-
 
         // no standard lib directives
         if manifest.directives.contains(&"no-link-libc".into()) {
