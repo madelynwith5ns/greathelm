@@ -32,6 +32,17 @@ Properties are in the form of Key=Value pairs.
 - **Additional-LD-Flags** Specifies additional C linker flags to be used. Separated by a comma (,). Defaults to none.
 - **C-Linker-Script** Specifies a custom linker script to be used.
 
+#### C++ Properties: These properties exist on C++ projects:
+- **Compiler-Opt-Level** Sets the compiler optimization level. Translates to the -O argument.
+- **Executable-Name** Sets the name of the compiled executable. If the Emit flag is set to `dylib` or `shared` the builder will add `lib-` and `-.so` to the executable name.
+- **Emit** Decides what type of compiled binary should be produced. Valid options are `executable`, `binary` (both mean normal executable binaries), `dylib`, and `shared` (both mean .so shared objects).
+- **Override-C++-Compiler** Specifies the compiler binary to be used. Defaults to `c++` if unset.
+- **Override-C++-Linker** Specifies the linker binary to be used. Defaults to `c++` if unset.
+- **Additional-CC-Flags** Specifies additional C compiler flags to be used. Separated by a comma (,). Defaults to none.
+- **Additional-LD-Flags** Specifies additional C linker flags to be used. Separated by a comma (,). Defaults to none.
+- **C-Linker-Script** Specifies a custom linker script to be used.
+- **C++-Stdlib-Flavor** Specifies which C++ standard library should be linked. Defaults to `stdc++`.
+
 ### @Dependency Directives
 
 #### @Dependency Directives in C Projects

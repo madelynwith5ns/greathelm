@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use crate::term::{error, info};
 
 pub mod c;
+pub mod cpp;
 pub mod custom;
 
 pub fn generate(project_type: String, cwd: PathBuf) {
@@ -14,6 +15,10 @@ pub fn generate(project_type: String, cwd: PathBuf) {
         "Custom" => {
             info(format!("Using generator \"Custom\""));
             custom::generate(cwd);
+        }
+        "C++" => {
+            info(format!("Using generator \"C++\""));
+            cpp::generate(cwd);
         }
 
         _ => {

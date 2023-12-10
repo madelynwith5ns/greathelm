@@ -3,6 +3,7 @@ use std::path::Path;
 use crate::{manifest::ProjectManifest, term::error};
 
 pub mod c;
+pub mod cpp;
 pub mod custom;
 pub mod parallel;
 
@@ -29,6 +30,9 @@ pub fn build(manifest: ProjectManifest) {
         }
         "Custom" => {
             custom::build(manifest);
+        }
+        "C++" => {
+            cpp::build(manifest);
         }
 
         _ => {
