@@ -274,7 +274,6 @@ pub fn build(manifest: ProjectManifest) {
             }
         }
 
-        ld_incantation.arg(format!("-l{stdlibflavor}"));
 
         // dylibs
         if emit == "shared" || emit == "dylib" {
@@ -284,6 +283,9 @@ pub fn build(manifest: ProjectManifest) {
         // no standard lib directives
         if manifest.directives.contains(&"no-link-libc".into()) {
             ld_incantation.arg("-nostdlib");
+        } else {
+            // dont link c++ stdlib if we aren't linking libc
+            ld_incantation.arg(format!("-l{stdlibflavor}"));
         }
         if manifest.directives.contains(&"freestanding".into()) {
             ld_incantation.arg("-ffreestanding");
