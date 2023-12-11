@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::Path};
+use std::{collections::HashMap, path::{Path, PathBuf}, str::FromStr};
 
 use crate::{module::Module, term::error};
 
@@ -55,6 +55,12 @@ impl ProjectManifest {
                     module_name: module_name.into(),
                     files,
                 });
+            }
+            if l.starts_with("@Import ") {
+                let path = PathBuf::from_str(format!("{}", l.split_once("@Import ").unwrap().1).as_str()).unwrap();
+                if path.exists() {
+                    self.read_and_append(&path);
+                }
             }
 
             if !l.contains("=") {
