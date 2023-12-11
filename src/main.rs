@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::Path};
+use std::{collections::HashMap, path::{Path, PathBuf}, str::FromStr};
 
 use builder::ProjectBuilder;
 use generator::ProjectGenerator;
@@ -26,6 +26,12 @@ fn main() {
     let mut builders: Vec<Box<dyn ProjectBuilder>> = Vec::new();
     let mut generators: Vec<Box<dyn ProjectGenerator>> = Vec::new();
     let mut manifest = manifest::ProjectManifest::new();
+
+    // user manifest
+    let path = PathBuf::from_str(format!("{}/UserManifest.ghm",config::get_config_base_dir().to_str().unwrap()).as_str()).unwrap();
+    if path.exists() {
+        manifest.read_and_append(&path);
+    }
 
     // builtins
     builders.push(Box::new(builder::c::CBuilder::create()));
@@ -170,6 +176,12 @@ fn main() {
             }
             // project manifest
             manifest.read_and_append(manifest_path);
+
+            // local manifest
+            let manifest_path = Path::new("Project.local.ghm");
+            if manifest_path.exists() {
+                manifest.read_and_append(manifest_path);
+            }
 
             if !manifest.properties.contains_key("Project-Name") {
                 error(format!("Project does not have a name!"));
