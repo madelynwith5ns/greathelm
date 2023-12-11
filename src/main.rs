@@ -1,18 +1,37 @@
 use std::{collections::HashMap, path::Path};
 
+use builder::ProjectBuilder;
+use generator::ProjectGenerator;
+use identify::NamespacedIdentifier;
 use term::ok;
 
-use crate::term::{error, info, warn};
+use crate::term::{error, info};
 
 mod builder;
 mod generator;
 mod ibht;
+mod identify;
 mod manifest;
 mod module;
+mod plugin;
 mod script;
 mod term;
 
 fn main() {
+    let mut builders: Vec<Box<dyn ProjectBuilder>> = Vec::new();
+    let mut generators: Vec<Box<dyn ProjectGenerator>> = Vec::new();
+
+    // builtins
+    builders.push(Box::new(builder::c::CBuilder::create()));
+    builders.push(Box::new(builder::cpp::CPPBuilder::create()));
+    builders.push(Box::new(builder::custom::CustomBuilder::create()));
+
+    generators.push(Box::new(generator::c::CGenerator::create()));
+    generators.push(Box::new(generator::cpp::CPPGenerator::create()));
+    generators.push(Box::new(generator::custom::CustomGenerator::create()));
+
+    // load plugins here..
+
     if std::env::args().len() <= 1 {
         println!("Usage: greathelm <action> [args]");
         return;
@@ -64,38 +83,66 @@ fn main() {
                 project_name = fname.to_string();
             }
 
-            let mut project_type: String = "C".into();
-
-            if flags.contains_key("project-type") {
-                project_type =
-                    get_project_type_from_aliases(flags.get("project-type").unwrap().clone());
-            }
-
-            if project_type == "Unknown" {
-                warn(format!("Unknown project type!"));
-                warn(format!("Defaulting to \"C\""));
-                project_type = "C".into();
-            } else {
-                info(format!("Project type is \"{}\"", project_type));
-            }
-
-            info(format!(
-                "Initializing current directory as Greathelm project \"{}\"",
-                project_name
-            ));
-
-            generator::generate(project_type.clone(), cdir);
-
-            info(format!("Writing IBHT stub..."));
-            match std::fs::write("IBHT.ghd", "\n") {
-                Ok(_) => {
-                    ok(format!("Blank IBHT has been written successfully."));
-                }
-                Err(e) => {
-                    error(format!("Failed to write a blank IBHT. Error is below:"));
-                    eprintln!("{}", e);
-                }
+            let project_type = match flags.get("project-type") {
+                Some(t) => t.clone(),
+                None => "io.github.madelynwith5ns.greathelm:Custom".into(),
             };
+
+            let mut use_generator: Option<&Box<dyn ProjectGenerator>> = None;
+            let namespaced = NamespacedIdentifier::parse_text(&project_type);
+            for g in &generators {
+                if g.get_aliases().contains(&project_type.to_lowercase()) {
+                    if use_generator.is_some() {
+                        error(format!(
+                            "Builder name \"{}\" is ambiguous in your configuration.",
+                            project_type
+                        ));
+                        error(format!("Please specify which one you would like to use either on the command line"));
+                        error(format!(
+                            "like so: --Project-Type=<full namespaced identifier>"
+                        ));
+                        error(format!("or in your project manifest."));
+                        std::process::exit(1);
+                    } else {
+                        use_generator = Some(g);
+                    }
+                } else if namespaced.namespace != "unnamespaced" && g.get_identifier() == namespaced
+                {
+                    use_generator = Some(g);
+                }
+            }
+
+            match use_generator {
+                Some(generator) => {
+                    info(format!(
+                        "Initializing current directory as Greathelm project \"{}\"",
+                        project_name
+                    ));
+
+                    generator.generate(std::env::current_dir().unwrap());
+
+                    if generator.should_make_ibht_stub() {
+                        info(format!(
+                            "Generator requested an IBHT stub. Writing IBHT stub..."
+                        ));
+                        match std::fs::write("IBHT.ghd", "\n") {
+                            Ok(_) => {
+                                ok(format!("Blank IBHT has been written successfully."));
+                            }
+                            Err(e) => {
+                                error(format!("Failed to write a blank IBHT. Error is below:"));
+                                eprintln!("{}", e);
+                            }
+                        };
+                    }
+                }
+                None => {
+                    error(format!(
+                        "Could not find requested generator \"{project_type}\""
+                    ));
+                    error(format!("Are you missing a plugin?"));
+                }
+            }
         }
 
         "build" => {
@@ -126,11 +173,6 @@ fn main() {
             let project_name = manifest.properties.get("Project-Name").unwrap();
             let project_type = manifest.properties.get("Project-Type").unwrap();
 
-            if get_project_type_from_aliases(project_type.clone()) == "Unknown" {
-                error(format!("Project is of an unknown type."));
-                return;
-            }
-
             info(format!("Building modules..."));
             script::run_script("pre-modules", vec![]);
             for module in &manifest.modules {
@@ -139,18 +181,47 @@ fn main() {
             script::run_script("post-modules", vec![]);
 
             info(format!("Building project \"{project_name}\""));
-            builder::build(manifest);
+
+            // find the builder, fail out if ambiguous.
+            let mut use_builder: Option<&Box<dyn ProjectBuilder>> = None;
+            let namespaced = NamespacedIdentifier::parse_text(project_type);
+            for b in &builders {
+                if b.get_aliases().contains(&project_type.to_lowercase()) {
+                    if use_builder.is_some() {
+                        error(format!(
+                            "Builder name \"{}\" is ambiguous in your configuration.",
+                            project_type
+                        ));
+                        error(format!("Please specify which one you would like to use either on the command line"));
+                        error(format!(
+                            "like so: --Project-Type=<full namespaced identifier>"
+                        ));
+                        error(format!("or in your project manifest."));
+                        std::process::exit(1);
+                    } else {
+                        use_builder = Some(b);
+                    }
+                } else if namespaced.namespace != "unnamespaced" && b.get_identifier() == namespaced
+                {
+                    use_builder = Some(b);
+                }
+            }
+
+            // build!
+            match use_builder {
+                Some(builder) => {
+                    builder.build(&manifest);
+                }
+                None => {
+                    error(format!(
+                        "Could not find the required builder \"{project_type}\"."
+                    ));
+                    error(format!("Are you missing a plugin?"));
+                    std::process::exit(1);
+                }
+            }
         }
 
         _ => {}
-    }
-}
-
-pub fn get_project_type_from_aliases(text: String) -> String {
-    match text.to_lowercase().as_str() {
-        "c" => "C".into(),
-        "custom" | "non-greathelm" | "buildscripts" => "Custom".into(),
-        "c++" | "cpp" => "C++".into(),
-        _ => return "Unknown".into(),
     }
 }

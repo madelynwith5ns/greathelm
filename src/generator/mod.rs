@@ -1,29 +1,25 @@
 use std::path::PathBuf;
 
-use crate::term::{error, info};
+use crate::identify::NamespacedIdentifier;
 
 pub mod c;
 pub mod cpp;
 pub mod custom;
 
-pub fn generate(project_type: String, cwd: PathBuf) {
-    match project_type.as_str() {
-        "C" => {
-            info(format!("Using generator \"C\""));
-            c::generate(cwd);
-        }
-        "Custom" => {
-            info(format!("Using generator \"Custom\""));
-            custom::generate(cwd);
-        }
-        "C++" => {
-            info(format!("Using generator \"C++\""));
-            cpp::generate(cwd);
-        }
-
-        _ => {
-            error(format!("FATAL: Invalid project type passed to generator."));
-            std::process::exit(1);
-        }
-    }
+pub trait ProjectGenerator {
+    fn get_name(&self) -> String;
+    fn get_aliases(&self) -> Vec<String>;
+    /**
+     * Namespaced identifiers are used for builders and generators
+     * when the name is ambiguous. For example, if you have two builders
+     * installed with the name "C" you will need to specify which one you
+     * mean using the identifier. Such as: "greathelm:c" or "example:c"
+     */
+    fn get_identifier(&self) -> NamespacedIdentifier;
+    /**
+     * Tells Greathelm whether or not it should create a stub
+     * IBHT. This exists incase the IBHT format changes.
+     */
+    fn should_make_ibht_stub(&self) -> bool;
+    fn generate(&self, cwd: PathBuf);
 }

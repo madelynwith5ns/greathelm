@@ -1,45 +1,32 @@
-use std::path::Path;
-
-use crate::{manifest::ProjectManifest, term::error};
+use crate::{identify::NamespacedIdentifier, manifest::ProjectManifest};
 
 pub mod c;
 pub mod cpp;
 pub mod custom;
 pub mod parallel;
 
-pub fn build(manifest: ProjectManifest) {
-    let project_type = manifest.properties.get("Project-Type").unwrap();
-
-    let build_dir = Path::new("build");
-    if !build_dir.exists() {
-        match std::fs::create_dir(build_dir) {
-            Ok(_) => {}
-            Err(e) => {
-                error(format!(
-                    "Failed to create project build directory! Error is below:"
-                ));
-                eprintln!("{}", e);
-                std::process::exit(1);
-            }
-        }
-    }
-
-    match project_type.as_str() {
-        "C" => {
-            c::build(manifest);
-        }
-        "Custom" => {
-            custom::build(manifest);
-        }
-        "C++" => {
-            cpp::build(manifest);
-        }
-
-        _ => {
-            error(format!(
-                "An invalid project type was passed to the builder."
-            ));
-            return;
-        }
-    }
+pub trait ProjectBuilder {
+    fn get_name(&self) -> String;
+    fn get_aliases(&self) -> Vec<String>;
+    /**
+     * Namespaced identifiers are used for builders and generators
+     * when the name is ambiguous. For example, if you have two builders
+     * installed with the name "C" you will need to specify which one you
+     * mean using the identifier. Such as: "greathelm:c" or "example:c"
+     */
+    fn get_identifier(&self) -> NamespacedIdentifier;
+    fn build(&self, manifest: &ProjectManifest);
+    /**
+     * Validate is called before build in an effort to ensure the project
+     * is in working order to be built. This is where you would put things
+     * like a code analyzer. Should return false if the project is invalid.
+     */
+    fn validate(&self, manifest: &ProjectManifest) -> bool;
+    /**
+     * This is called by the `greathelm clean` command.
+     * Use this space to clean up after your build.
+     * In the C builder this would remove all stale objects in the build
+     * directory.
+     */
+    fn cleanup(&self, manifest: &ProjectManifest);
 }

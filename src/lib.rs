@@ -1,7 +1,9 @@
 pub mod builder;
 pub mod generator;
 pub mod ibht;
+pub mod identify;
 pub mod manifest;
 pub mod module;
+pub mod plugin;
 pub mod script;
-mod term;
+pub mod term;
