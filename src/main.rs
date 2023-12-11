@@ -1,11 +1,12 @@
-use std::{collections::HashMap, path::{Path, PathBuf}, str::FromStr};
+use std::{collections::HashMap, path::PathBuf, str::FromStr};
 
+use action::Action;
 use builder::ProjectBuilder;
 use generator::ProjectGenerator;
 use identify::NamespacedIdentifier;
-use term::ok;
+use state::GreathelmState;
 
-use crate::term::{error, info};
+use crate::term::error;
 
 mod builder;
 mod generator;
@@ -26,9 +27,18 @@ fn main() {
     let mut builders: Vec<Box<dyn ProjectBuilder>> = Vec::new();
     let mut generators: Vec<Box<dyn ProjectGenerator>> = Vec::new();
     let mut manifest = manifest::ProjectManifest::new();
+    let mut actions: Vec<Box<dyn Action>> = Vec::new();
 
     // user manifest
     let path = PathBuf::from_str(format!("{}/UserManifest.ghm",config::get_config_base_dir().to_str().unwrap()).as_str()).unwrap();
+    if path.exists() {
+        manifest.read_and_append(&path);
+    }
+    let path = PathBuf::from_str("Project.ghm").unwrap();
+    if path.exists() {
+        manifest.read_and_append(&path);
+    }
+    let path = PathBuf::from_str("Project.local.ghm").unwrap();
     if path.exists() {
         manifest.read_and_append(&path);
     }
@@ -42,6 +52,9 @@ fn main() {
     generators.push(Box::new(generator::cpp::CPPGenerator::create()));
     generators.push(Box::new(generator::custom::CustomGenerator::create()));
 
+    actions.push(Box::new(action::init::InitAction::create()));
+    actions.push(Box::new(action::build::BuildAction::create()));
+
     // load plugins here..
     let plugins = plugin::load_plugins();
     for plugin in plugins {
@@ -51,7 +64,17 @@ fn main() {
         for g in plugin.generators {
             generators.push(g);
         }
+        for a in plugin.actions {
+            actions.push(a);
+        }
     }
+
+    let mut state = GreathelmState {
+        builders: builders,
+        generators: generators,
+        manifest: manifest,
+        actions: actions
+    };
 
     if std::env::args().len() <= 1 {
         println!("Usage: greathelm <action> [args]");
@@ -79,189 +102,40 @@ fn main() {
         }
     }
 
-    match action.as_str() {
-        "init" => {
-            let cdir = match std::env::current_dir() {
-                Ok(dir) => dir,
-                Err(_) => {
-                    error(format!("Current directory is invalid."));
-                    return;
-                }
-            };
-
-            let project_name: String;
-
-            if flags.contains_key("project-name") {
-                project_name = flags.get("project-name").unwrap().clone();
-            } else {
-                let fname = match cdir.file_name() {
-                    Some(fname) => fname.to_string_lossy(),
-                    None => {
-                        error(format!("Current directory is invalid."));
-                        return;
-                    }
-                };
-                project_name = fname.to_string();
-            }
-
-            let project_type = match flags.get("project-type") {
-                Some(t) => t.clone(),
-                None => "io.github.madelynwith5ns.greathelm:Custom".into(),
-            };
-
-            let mut use_generator: Option<&Box<dyn ProjectGenerator>> = None;
-            let namespaced = NamespacedIdentifier::parse_text(&project_type);
-            for g in &generators {
-                if g.get_aliases().contains(&project_type.to_lowercase()) {
-                    if use_generator.is_some() {
-                        error(format!(
-                            "Builder name \"{}\" is ambiguous in your configuration.",
-                            project_type
-                        ));
-                        error(format!("Please specify which one you would like to use either on the command line"));
-                        error(format!(
-                            "like so: --Project-Type=<full namespaced identifier>"
-                        ));
-                        error(format!("or in your project manifest."));
-                        std::process::exit(1);
-                    } else {
-                        use_generator = Some(g);
-                    }
-                } else if namespaced.namespace != "unnamespaced" && g.get_identifier() == namespaced
-                {
-                    use_generator = Some(g);
-                }
-            }
-
-            match use_generator {
-                Some(generator) => {
-                    info(format!(
-                        "Initializing current directory as Greathelm project \"{}\"",
-                        project_name
-                    ));
-
-                    generator.generate(std::env::current_dir().unwrap());
-
-                    if generator.should_make_ibht_stub() {
-                        info(format!(
-                            "Generator requested an IBHT stub. Writing IBHT stub..."
-                        ));
-                        match std::fs::write("IBHT.ghd", "\n") {
-                            Ok(_) => {
-                                ok(format!("Blank IBHT has been written successfully."));
-                            }
-                            Err(e) => {
-                                error(format!("Failed to write a blank IBHT. Error is below:"));
-                                eprintln!("{}", e);
-                            }
-                        };
-                    }
-                }
-                None => {
-                    error(format!(
-                        "Could not find requested generator \"{project_type}\""
-                    ));
-                    error(format!("Are you missing a plugin?"));
-                }
-            }
-        }
-
-        "build" => {
-            let manifest_path = Path::new("Project.ghm");
-            if !manifest_path.exists() {
+    let mut use_action: Option<&Box<dyn Action>> = None;
+    let namespaced = NamespacedIdentifier::parse_text(&action);
+    for a in &state.actions {
+        if a.get_aliases().contains(&action.to_lowercase()) {
+            if use_action.is_some() {
                 error(format!(
-                    "Could not find Project.ghm in the current directory. Try 'greathelm init'"
-                ));
-                return;
-            }
-            // project manifest
-            manifest.read_and_append(manifest_path);
-
-            // local manifest
-            let manifest_path = Path::new("Project.local.ghm");
-            if manifest_path.exists() {
-                manifest.read_and_append(manifest_path);
-            }
-
-            if !manifest.properties.contains_key("Project-Name") {
-                error(format!("Project does not have a name!"));
-                return;
-            }
-            if !manifest.properties.contains_key("Project-Type") {
-                error(format!("Project does not have a type!"));
-                return;
-            }
-
-            for f in flags.keys() {
-                manifest
-                    .properties
-                    .insert(f.clone(), flags.get(f).unwrap().clone());
-            }
-
-            let project_name = manifest.properties.get("Project-Name").unwrap();
-            let project_type = manifest.properties.get("Project-Type").unwrap();
-
-            info(format!("Building modules..."));
-            script::run_script("pre-modules", vec![]);
-            for module in &manifest.modules {
-                module.build();
-            }
-            script::run_script("post-modules", vec![]);
-
-            info(format!("Building project \"{project_name}\""));
-
-            // find the builder, fail out if ambiguous.
-            let mut use_builder: Option<&Box<dyn ProjectBuilder>> = None;
-            let namespaced = NamespacedIdentifier::parse_text(project_type);
-            for b in &builders {
-                if b.get_aliases().contains(&project_type.to_lowercase()) {
-                    if use_builder.is_some() {
-                        error(format!(
-                            "Builder name \"{}\" is ambiguous in your configuration.",
-                            project_type
+                        "Action name \"{}\" is ambiguous in your configuration.",
+                        action
                         ));
-                        error(format!("Please specify which one you would like to use either on the command line"));
-                        error(format!(
-                            "like so: --Project-Type=<full namespaced identifier>"
-                        ));
-                        error(format!("or in your project manifest."));
-                        std::process::exit(1);
-                    } else {
-                        use_builder = Some(b);
-                    }
-                } else if namespaced.namespace != "unnamespaced" && b.get_identifier() == namespaced
-                {
-                    use_builder = Some(b);
-                }
+                error(format!("Please specify which one you would like to use."));
+                error(format!("Like so: greathelm <full.namespaced:Identifier>"));
+                std::process::exit(1);
+            } else {
+                use_action = Some(a);
             }
-
-            // build!
-            match use_builder {
-                Some(builder) => {
-                    // create build dir if absent
-                    let path = Path::new("build");
-                    if !path.exists() {
-                        match std::fs::create_dir(path) {
-                            Ok(_) => {},
-                            Err(_) => {
-                                error(format!("Failed to create build directory. Abort."));
-                                std::process::exit(1);
-                            },
-                        };
-                    }
-
-                    builder.build(&manifest);
-                }
-                None => {
-                    error(format!(
-                        "Could not find the required builder \"{project_type}\"."
-                    ));
-                    error(format!("Are you missing a plugin?"));
-                    std::process::exit(1);
-                }
-            }
+        } else if namespaced.namespace != "unnamespaced" && a.get_identifier() == namespaced
+        {
+            use_action = Some(a);
         }
+    }
 
-        _ => {}
+    for f in flags.keys() {
+        (&mut state.manifest)
+            .properties
+            .insert(f.clone(), flags.get(f).unwrap().clone());
+    }
+
+    match use_action {
+        Some(a) => {
+            a.execute(&state);
+        },
+        None => {
+            error(format!("Action {action} could not be resolved."));
+            error(format!("Are you missing a plugin?"));
+        },
     }
 }

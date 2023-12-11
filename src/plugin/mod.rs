@@ -1,6 +1,6 @@
 use std::{path::PathBuf, str::FromStr};
 
-use crate::{builder::ProjectBuilder, generator::ProjectGenerator, config, term::{error, ok}};
+use crate::{builder::ProjectBuilder, generator::ProjectGenerator, config, term::{error, ok}, action::Action};
 
 // this is just here to keep things loaded because libloading automatically
 // unloads them when dropped.
@@ -37,6 +37,7 @@ pub struct GreathelmPlugin {
      * generators store after plugin init.
      */
     pub generators: Vec<Box<dyn ProjectGenerator>>,
+    pub actions: Vec<Box<dyn Action>>,
 }
 
 pub fn load_plugins() -> Vec<GreathelmPlugin> {

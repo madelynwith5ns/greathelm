@@ -2,6 +2,7 @@ use std::{collections::HashMap, path::{Path, PathBuf}, str::FromStr};
 
 use crate::{module::Module, term::error};
 
+#[derive(Clone)]
 pub struct ProjectManifest {
     pub properties: HashMap<String, String>,
     pub dependencies: Vec<String>,

@@ -10,6 +10,7 @@ use crate::{
     term::{error, info},
 };
 
+#[derive(Clone)]
 pub struct Module {
     pub module_name: String, // name of the module
     // this is also the subfolder
