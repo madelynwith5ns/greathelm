@@ -238,6 +238,18 @@ fn main() {
             // build!
             match use_builder {
                 Some(builder) => {
+                    // create build dir if absent
+                    let path = Path::new("build");
+                    if !path.exists() {
+                        match std::fs::create_dir(path) {
+                            Ok(_) => {},
+                            Err(_) => {
+                                error(format!("Failed to create build directory. Abort."));
+                                std::process::exit(1);
+                            },
+                        };
+                    }
+
                     builder.build(&manifest);
                 }
                 None => {
