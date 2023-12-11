@@ -17,12 +17,15 @@ mod plugin;
 mod script;
 mod term;
 mod config;
+mod action;
+mod state;
 
 fn main() { 
     config::ensure_config_dirs();
 
     let mut builders: Vec<Box<dyn ProjectBuilder>> = Vec::new();
     let mut generators: Vec<Box<dyn ProjectGenerator>> = Vec::new();
+    let mut manifest = manifest::ProjectManifest::new();
 
     // builtins
     builders.push(Box::new(builder::c::CBuilder::create()));
@@ -165,7 +168,8 @@ fn main() {
                 ));
                 return;
             }
-            let mut manifest = manifest::read_manifest(manifest_path);
+            // project manifest
+            manifest.read_and_append(manifest_path);
 
             if !manifest.properties.contains_key("Project-Name") {
                 error(format!("Project does not have a name!"));
