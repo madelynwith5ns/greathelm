@@ -7,3 +7,4 @@ pub mod module;
 pub mod plugin;
 pub mod script;
 pub mod term;
+pub mod config;

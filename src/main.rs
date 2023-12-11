@@ -16,8 +16,11 @@ mod module;
 mod plugin;
 mod script;
 mod term;
+mod config;
 
-fn main() {
+fn main() { 
+    config::ensure_config_dirs();
+
     let mut builders: Vec<Box<dyn ProjectBuilder>> = Vec::new();
     let mut generators: Vec<Box<dyn ProjectGenerator>> = Vec::new();
 
@@ -31,10 +34,19 @@ fn main() {
     generators.push(Box::new(generator::custom::CustomGenerator::create()));
 
     // load plugins here..
+    let plugins = plugin::load_plugins();
+    for plugin in plugins {
+        for b in plugin.builders {
+            builders.push(b);
+        }
+        for g in plugin.generators {
+            generators.push(g);
+        }
+    }
 
     if std::env::args().len() <= 1 {
         println!("Usage: greathelm <action> [args]");
-        return;
+        std::process::exit(0);
     }
     let args: Vec<String> = std::env::args().collect();
 
