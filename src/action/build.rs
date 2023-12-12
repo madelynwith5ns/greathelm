@@ -1,13 +1,18 @@
 use std::path::Path;
 
-use crate::{term::{error, info}, script, builder::ProjectBuilder, identify::NamespacedIdentifier};
+use crate::{
+    builder::ProjectBuilder,
+    identify::NamespacedIdentifier,
+    script,
+    term::{error, info},
+};
 
 use super::Action;
 
-pub struct BuildAction { }
+pub struct BuildAction {}
 impl BuildAction {
     pub fn create() -> Self {
-        Self {  }
+        Self {}
     }
 }
 
@@ -19,7 +24,10 @@ impl Action for BuildAction {
         vec!["build".into()]
     }
     fn get_identifier(&self) -> crate::identify::NamespacedIdentifier {
-        crate::identify::NamespacedIdentifier { namespace: "io.github.madelynwith5ns.greathelm".into(), identifier: "Build".into() }
+        crate::identify::NamespacedIdentifier {
+            namespace: "io.github.madelynwith5ns.greathelm".into(),
+            identifier: "Build".into(),
+        }
     }
 
     fn execute(&self, state: &crate::state::GreathelmState) {
@@ -51,20 +59,21 @@ impl Action for BuildAction {
             if b.get_aliases().contains(&project_type.to_lowercase()) {
                 if use_builder.is_some() {
                     error(format!(
-                            "Builder name \"{}\" is ambiguous in your configuration.",
-                            project_type
-                            ));
-                    error(format!("Please specify which one you would like to use either on the command line"));
+                        "Builder name \"{}\" is ambiguous in your configuration.",
+                        project_type
+                    ));
                     error(format!(
-                            "like so: --Project-Type=<full.namespaced:Identifier>"
-                            ));
+                        "Please specify which one you would like to use either on the command line"
+                    ));
+                    error(format!(
+                        "like so: --Project-Type=<full.namespaced:Identifier>"
+                    ));
                     error(format!("or in your project manifest."));
                     std::process::exit(1);
                 } else {
                     use_builder = Some(b);
                 }
-            } else if namespaced.namespace != "unnamespaced" && b.get_identifier() == namespaced
-            {
+            } else if namespaced.namespace != "unnamespaced" && b.get_identifier() == namespaced {
                 use_builder = Some(b);
             }
         }
@@ -76,11 +85,11 @@ impl Action for BuildAction {
                 let path = Path::new("build");
                 if !path.exists() {
                     match std::fs::create_dir(path) {
-                        Ok(_) => {},
+                        Ok(_) => {}
                         Err(_) => {
                             error(format!("Failed to create build directory. Abort."));
                             std::process::exit(1);
-                        },
+                        }
                     };
                 }
 
@@ -88,11 +97,11 @@ impl Action for BuildAction {
             }
             None => {
                 error(format!(
-                        "Could not find the required builder \"{project_type}\"."
-                        ));
+                    "Could not find the required builder \"{project_type}\"."
+                ));
                 error(format!("Are you missing a plugin?"));
                 std::process::exit(1);
             }
-        } 
+        }
     }
 }

@@ -1,4 +1,8 @@
-use std::{collections::HashMap, path::{Path, PathBuf}, str::FromStr};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 
 use crate::{module::Module, term::error};
 
@@ -8,19 +12,21 @@ pub struct ProjectManifest {
     pub dependencies: Vec<String>,
     pub directives: Vec<String>,
     pub modules: Vec<Module>,
+    pub aliases: HashMap<String, String>,
 }
 
 impl ProjectManifest {
     pub fn new() -> Self {
-        Self { 
+        Self {
             properties: HashMap::new(),
             dependencies: Vec::new(),
             directives: Vec::new(),
-            modules: Vec::new()
+            modules: Vec::new(),
+            aliases: HashMap::new(),
         }
     }
 
-    pub fn read_and_append(&mut self, path: &Path) { 
+    pub fn read_and_append(&mut self, path: &Path) {
         let raw_file = match std::fs::read_to_string(path) {
             Ok(data) => data,
             Err(e) => {
@@ -35,11 +41,13 @@ impl ProjectManifest {
                 continue;
             }
             if l.starts_with("@Dependency ") {
-                self.dependencies.push(l.split_once("@Dependency ").unwrap().1.into());
+                self.dependencies
+                    .push(l.split_once("@Dependency ").unwrap().1.into());
                 continue;
             }
             if l.starts_with("@Directive ") {
-                self.directives.push(l.split_once("@Directive ").unwrap().1.into());
+                self.directives
+                    .push(l.split_once("@Directive ").unwrap().1.into());
                 continue;
             }
             if l.starts_with("@Module ") {
@@ -58,10 +66,16 @@ impl ProjectManifest {
                 });
             }
             if l.starts_with("@Import ") {
-                let path = PathBuf::from_str(format!("{}", l.split_once("@Import ").unwrap().1).as_str()).unwrap();
+                let path =
+                    PathBuf::from_str(format!("{}", l.split_once("@Import ").unwrap().1).as_str())
+                        .unwrap();
                 if path.exists() {
                     self.read_and_append(&path);
                 }
+            }
+            if l.starts_with("@Alias ") {
+                let (alias, target) = l.split_once("@Alias ").unwrap().1.split_once("=").unwrap();
+                self.aliases.insert(alias.into(), target.into());
             }
 
             if !l.contains("=") {

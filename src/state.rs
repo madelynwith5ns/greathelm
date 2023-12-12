@@ -1,4 +1,6 @@
-use crate::{builder::ProjectBuilder, generator::ProjectGenerator, manifest::ProjectManifest, action::Action};
+use crate::{
+    action::Action, builder::ProjectBuilder, generator::ProjectGenerator, manifest::ProjectManifest,
+};
 
 pub struct GreathelmState {
     pub builders: Vec<Box<dyn ProjectBuilder>>,

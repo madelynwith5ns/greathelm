@@ -1,4 +1,6 @@
+pub mod action;
 pub mod builder;
+pub mod config;
 pub mod generator;
 pub mod ibht;
 pub mod identify;
@@ -6,7 +8,5 @@ pub mod manifest;
 pub mod module;
 pub mod plugin;
 pub mod script;
-pub mod term;
-pub mod config;
-pub mod action;
 pub mod state;
+pub mod term;

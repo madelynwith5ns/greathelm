@@ -11,9 +11,7 @@ pub fn get_config_base_dir() -> PathBuf {
                 "~".into()
             }
         }
-        Err(_) => {
-            "~".into()
-        }
+        Err(_) => "~".into(),
     };
     let config_home = match std::env::var("XDG_CONFIG_HOME") {
         Ok(s) => {
@@ -22,10 +20,10 @@ pub fn get_config_base_dir() -> PathBuf {
             } else {
                 format!("{usrhome}/.config")
             }
-        },
+        }
         Err(_) => {
             format!("{usrhome}/.config")
-        },
+        }
     };
 
     return PathBuf::from_str(format!("{config_home}/greathelm").as_str()).unwrap();
@@ -33,7 +31,8 @@ pub fn get_config_base_dir() -> PathBuf {
 
 pub fn ensure_config_dirs() {
     let ghconfig_base = get_config_base_dir();
-    let ghconfig_plugins = PathBuf::from_str(format!("{}/plugins", ghconfig_base.to_str().unwrap()).as_str()).unwrap();
+    let ghconfig_plugins =
+        PathBuf::from_str(format!("{}/plugins", ghconfig_base.to_str().unwrap()).as_str()).unwrap();
 
     ensure_dir(ghconfig_base);
     ensure_dir(ghconfig_plugins);
@@ -41,22 +40,19 @@ pub fn ensure_config_dirs() {
 
 fn ensure_dir(path: PathBuf) {
     if !match path.try_exists() {
-        Ok(ex) => {
-            ex
-        },
+        Ok(ex) => ex,
         Err(_) => {
             error(format!("Could not ensure config directories. Abort."));
             std::process::exit(1);
-        },
+        }
     } {
-
         match std::fs::create_dir_all(path) {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(e) => {
                 error(format!("Could not ensure config directories. Abort."));
-                eprintln!("{}",e);
+                eprintln!("{}", e);
                 std::process::exit(1);
-            },
+            }
         }
     }
 }
