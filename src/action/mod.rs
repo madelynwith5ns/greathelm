@@ -2,6 +2,7 @@ use crate::{identify::NamespacedIdentifier, state::GreathelmState};
 
 pub mod build;
 pub mod init;
+pub mod script;
 
 pub trait Action {
     fn get_name(&self) -> String;

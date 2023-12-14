@@ -7,4 +7,5 @@ pub struct GreathelmState {
     pub generators: Vec<Box<dyn ProjectGenerator>>,
     pub actions: Vec<Box<dyn Action>>,
     pub manifest: ProjectManifest,
+    pub cli_args: Vec<String>,
 }

@@ -33,7 +33,8 @@ pub fn ensure_config_dirs() {
     let ghconfig_base = get_config_base_dir();
     let ghconfig_plugins =
         PathBuf::from_str(format!("{}/plugins", ghconfig_base.to_str().unwrap()).as_str()).unwrap();
-    let ghconfig_scripts = PathBuf::from_str(format!("{}/scripts",ghconfig_base.to_str().unwrap()).as_str()).unwrap();
+    let ghconfig_scripts =
+        PathBuf::from_str(format!("{}/scripts", ghconfig_base.to_str().unwrap()).as_str()).unwrap();
 
     ensure_dir(ghconfig_base);
     ensure_dir(ghconfig_plugins);

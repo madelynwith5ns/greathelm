@@ -105,6 +105,7 @@ fn main() {
 
     actions.push(Box::new(action::init::InitAction::create()));
     actions.push(Box::new(action::build::BuildAction::create()));
+    actions.push(Box::new(action::script::ScriptAction::create()));
 
     // load plugins here..
     let plugins = plugin::load_plugins();
@@ -125,6 +126,7 @@ fn main() {
         generators: generators,
         manifest: manifest,
         actions: actions,
+        cli_args: std::env::args().collect(),
     };
 
     for a in state.manifest.aliases.keys() {
