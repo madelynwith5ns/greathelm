@@ -86,3 +86,22 @@ For example, to include the artifact `build/libexample.so` from the `example` mo
 ```
 
 Module components can be directories if needed.
+
+### @Alias Directives
+Alias directives are intended to be set in local manifests (`Project.local.ghm`, `$XDG_CONFIG_HOME/greathelm/UserManifest.md`). They specify ways to resolve ambiguous names or simply just changing how you refer to something.
+
+For example:
+
+```ghm
+# Use specifically the Greathelm-builtin C builder and generator instead of one provided by a plugin.
+@Alias C=io.github.madelynwith5ns.greathelm:C
+```
+
+### @Import Directives
+Import directives simply include another manifest file at the location of the directive.
+
+For example:
+
+```ghm
+@Import OtherManifest.ghm
+```
