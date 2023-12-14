@@ -120,7 +120,7 @@ You may also notice that this printed a line similar to the following in your te
 
 If you would like to control the number of CPUs (and thus, parallel building jobs) used, either specify `--build-cpus=<num>` on the command line when building OR set `build-cpus` (all lowercase) in one of your manifest files. (Probably set this in `Project.local.ghm` in your project or `$XDG_CONFIG_HOME/greathelm/UserManifest.ghm`).
 
-For a bit more in-depth look at the things you can do, check out `Manifest-Format.md` in the `doc/` directory of this repository. And if you REALLY want to get into the weeds, check out `Plugin-API.md`.
+For a bit more in-depth look at the things you can do, check out `Manifest-Format.md` in the `docs/` directory of this repository. And if you REALLY want to get into the weeds, check out `Plugin-API.md`.
 
 ### Libraries Used
 Greathelm uses a fairly minimal set of libraries:
