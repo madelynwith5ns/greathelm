@@ -1,13 +1,20 @@
-use std::{io::Write, path::Path, process::Command};
+use std::path::Path;
 
-use crate::term::{error, info};
+use crate::{term::{error, info}, config};
 
+/**
+ * This method only checks if the script exists in the
+ * current project!!!
+ * It does NOT check user scripts!
+ */
 pub fn has_script(script_name: &str) -> bool {
     let mut path: String = "scripts/".into();
     path.push_str(script_name);
     path.push_str(".sh");
     match Path::new(&path).try_exists() {
-        Ok(o) => o,
+        Ok(o) => {
+            o
+        },
         Err(_) => {
             error(format!(
                 "Cannot check for script {path}. Assuming it is not present."
@@ -18,6 +25,14 @@ pub fn has_script(script_name: &str) -> bool {
 }
 
 pub fn run_script(script_name: &str, args: Vec<String>) {
+    let str = format!("{}/scripts/{script_name}.sh",
+                      config::get_config_base_dir().to_str().unwrap());
+    let userpath = Path::new(&str);
+
+    if userpath.exists() {   
+        duct::cmd!("sh","-c",str).stderr_to_stdout().run().ok();
+    }
+
     if has_script(script_name) {
         info(format!("Running script {script_name}"));
         let mut invoke: String = "./scripts/".into();
@@ -27,26 +42,7 @@ pub fn run_script(script_name: &str, args: Vec<String>) {
             invoke.push_str(" ");
             invoke.push_str(&arg);
         }
-        match Command::new("sh").arg("-c").arg(invoke).output() {
-            Ok(output) => {
-                let out = String::from_utf8(output.stdout);
-                match out {
-                    Ok(ok) => {
-                        print!("{}", ok);
-                        std::io::stdout().flush().ok();
-                    }
-                    Err(_) => {}
-                }
-                let out = String::from_utf8(output.stderr);
-                match out {
-                    Ok(ok) => {
-                        eprint!("{}", ok);
-                        std::io::stderr().flush().ok();
-                    }
-                    Err(_) => {}
-                }
-            }
-            Err(_) => {}
-        };
+
+        duct::cmd!("sh","-c",invoke).stderr_to_stdout().run().ok();
     }
 }
