@@ -38,30 +38,20 @@ impl Action for InitAction {
             }
         };
 
-        let project_name: String;
+        let project_name: String = state.manifest.get_string_property(
+            "project-name",
+            match cdir.file_name() {
+                Some(v) => match v.to_str() {
+                    Some(v) => v,
+                    None => "current-dir",
+                },
+                None => "current-dir",
+            },
+        );
 
-        if state.manifest.properties.contains_key("project-name") {
-            project_name = state
-                .manifest
-                .properties
-                .get("project-name")
-                .unwrap()
-                .clone();
-        } else {
-            let fname = match cdir.file_name() {
-                Some(fname) => fname.to_string_lossy(),
-                None => {
-                    error(format!("Current directory is invalid."));
-                    return;
-                }
-            };
-            project_name = fname.to_string();
-        }
-
-        let project_type = match state.manifest.properties.get("project-type") {
-            Some(t) => t.clone(),
-            None => "io.github.madelynwith5ns.greathelm:Custom".into(),
-        };
+        let project_type = state
+            .manifest
+            .get_string_property("project-type", "io.github.madelynwith5ns.greathelm:Custom");
 
         let mut use_generator: Option<&Box<dyn ProjectGenerator>> = None;
         let namespaced = NamespacedIdentifier::parse_text(&project_type);

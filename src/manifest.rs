@@ -1,3 +1,7 @@
+#![allow(dead_code)] // don't complain about convenience methods
+                     // (get_<type>_property) that are unused
+                     // they are for plugins/later.
+
 use std::{
     collections::HashMap,
     path::{Path, PathBuf},
@@ -23,6 +27,55 @@ impl ProjectManifest {
             directives: Vec::new(),
             modules: Vec::new(),
             aliases: HashMap::new(),
+        }
+    }
+
+    pub fn get_string_property(&self, key: &str, default: &str) -> String {
+        match self.properties.get(key) {
+            Some(k) => k.clone(),
+            None => default.into(),
+        }
+    }
+
+    pub fn get_i32_property(&self, key: &str, default: i32) -> i32 {
+        match self.get_string_property(key, &format!("{default}")).parse() {
+            Ok(v) => v,
+            Err(_) => default,
+        }
+    }
+
+    pub fn get_u32_property(&self, key: &str, default: u32) -> u32 {
+        match self.get_string_property(key, &format!("{default}")).parse() {
+            Ok(v) => v,
+            Err(_) => default,
+        }
+    }
+
+    pub fn get_i64_property(&self, key: &str, default: i64) -> i64 {
+        match self.get_string_property(key, &format!("{default}")).parse() {
+            Ok(v) => v,
+            Err(_) => default,
+        }
+    }
+
+    pub fn get_u64_property(&self, key: &str, default: u64) -> u64 {
+        match self.get_string_property(key, &format!("{default}")).parse() {
+            Ok(v) => v,
+            Err(_) => default,
+        }
+    }
+
+    pub fn get_usize_property(&self, key: &str, default: usize) -> usize {
+        match self.get_string_property(key, &format!("{default}")).parse() {
+            Ok(v) => v,
+            Err(_) => default,
+        }
+    }
+
+    pub fn get_bool_property(&self, key: &str, default: bool) -> bool {
+        match self.get_string_property(key, &format!("{default}")).parse() {
+            Ok(v) => v,
+            Err(_) => default,
         }
     }
 

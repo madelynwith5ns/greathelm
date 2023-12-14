@@ -50,14 +50,9 @@ impl ProjectBuilder for CustomBuilder {
 
         script::run_script("prebuild", vec![]);
 
-        let outfile = match manifest.properties.get("Output-Name") {
-            Some(v) => {
-                format!("build/{}", v.clone())
-            }
-            None => "build/compiled".into(),
-        };
-
+        let outfile = manifest.get_string_property("Output-Name", "build/compiled".into());
         script::run_script("build", vec![outfile]);
+
         script::run_script("postbuild", vec![]);
     }
 }

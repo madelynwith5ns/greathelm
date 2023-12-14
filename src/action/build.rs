@@ -31,17 +31,12 @@ impl Action for BuildAction {
     }
 
     fn execute(&self, state: &crate::state::GreathelmState) {
-        if !state.manifest.properties.contains_key("Project-Name") {
-            error(format!("Project does not have a name!"));
-            return;
-        }
-        if !state.manifest.properties.contains_key("Project-Type") {
-            error(format!("Project does not have a type!"));
-            return;
-        }
-
-        let project_name = state.manifest.properties.get("Project-Name").unwrap();
-        let project_type = state.manifest.properties.get("Project-Type").unwrap();
+        let project_name = state
+            .manifest
+            .get_string_property("Project-Name", "UnnamedProject");
+        let project_type = state
+            .manifest
+            .get_string_property("Project-Type", "Unknown");
 
         info(format!("Building modules..."));
         script::run_script("pre-modules", vec![]);
@@ -54,7 +49,7 @@ impl Action for BuildAction {
 
         // find the builder, fail out if ambiguous.
         let mut use_builder: Option<&Box<dyn ProjectBuilder>> = None;
-        let namespaced = NamespacedIdentifier::parse_text(project_type);
+        let namespaced = NamespacedIdentifier::parse_text(&project_type);
         for b in &state.builders {
             if b.get_aliases().contains(&project_type.to_lowercase()) {
                 if use_builder.is_some() {

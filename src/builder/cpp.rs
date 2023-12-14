@@ -37,22 +37,10 @@ impl ProjectBuilder for CPPBuilder {
         script::run_script("prebuild", vec![]);
 
         // Settings
-        let cc = match manifest.properties.get("Override-C++-Compiler".into()) {
-            Some(cc) => cc.to_owned(),
-            None => "c++".into(),
-        }; // compiler
-        let ld = match manifest.properties.get("Override-C++-Linker".into()) {
-            Some(ld) => ld.to_owned(),
-            None => "c++".into(),
-        }; // linker
-        let opt = match manifest.properties.get("Compiler-Opt-Level".into()) {
-            Some(opt) => opt.to_owned(),
-            None => "2".into(),
-        }; // -O opt level
-        let artifact = match manifest.properties.get("Executable-Name".into()) {
-            Some(artifact) => artifact.to_owned(),
-            None => "executable.elf".into(),
-        }; // output binary name
+        let cc = manifest.get_string_property("Override-C++-Compiler", "c++");
+        let ld = manifest.get_string_property("Override-C++-Linker", "c++");
+        let opt = manifest.get_string_property("Compiler-Opt-Level", "2");
+        let artifact = manifest.get_string_property("Executable-Name", "binary");
         let cflags = match manifest.properties.get("Additional-CC-Flags".into()) {
             Some(cf) => cf.split(",").map(|f| f.to_string()).collect(),
             None => {
@@ -65,10 +53,7 @@ impl ProjectBuilder for CPPBuilder {
                 vec![]
             }
         }; // LDFLAGS comma separated
-        let mut emit = match manifest.properties.get("Emit".into()) {
-            Some(emit) => emit.to_owned(),
-            None => "binary".into(),
-        };
+        let mut emit = manifest.get_string_property("Emit", "binary");
         if emit == "binary" || emit == "executable" {
             info(format!("Emitting an Executable Binary"));
         } else if emit == "shared" || emit == "dylib" {
@@ -77,30 +62,9 @@ impl ProjectBuilder for CPPBuilder {
             warn(format!("Unrecognized EMIT. Defaulting to binary."));
             emit = "binary".into();
         } // output type. binary/executable = normal executable, shared/dylib = .so shared object
-        let debug_info = match manifest.properties.get("debug-info".into()) {
-            Some(di) => {
-                if di == "true" {
-                    true
-                } else {
-                    false
-                }
-            }
-            None => false,
-        }; // debug info (-g)
-        let force_full_rebuild = match manifest.properties.get("force-full-rebuild".into()) {
-            Some(di) => {
-                if di == "true" {
-                    true
-                } else {
-                    false
-                }
-            }
-            None => false,
-        }; // force a complete rebuild. (don't reuse old objects)
-        let stdlibflavor: String = match manifest.properties.get("C++-Stdlib-Flavor") {
-            Some(std) => std.clone(),
-            None => "stdc++".into(),
-        };
+        let debug_info = manifest.get_bool_property("debug-info", false);
+        let force_full_rebuild = manifest.get_bool_property("force-full-rebuild", true);
+        let stdlibflavor = manifest.get_string_property("C++-Stdlib-Flavor", "stdc++");
 
         info(format!("Using CC \"{cc}\""));
         info(format!("Using LD \"{ld}\""));
@@ -154,13 +118,13 @@ impl ProjectBuilder for CPPBuilder {
         let mut outs: Vec<String> = Vec::new();
 
         // setup parallel build
-        let cpus: usize = match manifest.properties.get("build-cpus") {
-            Some(s) => match s.parse() {
-                Ok(v) => v,
-                Err(_) => 1usize,
+        let cpus = manifest.get_usize_property(
+            "build-cpus",
+            match std::thread::available_parallelism() {
+                Ok(v) => v.get(),
+                Err(_) => 4, // 4 feels like a safe-ish default
             },
-            None => std::thread::available_parallelism().unwrap().into(),
-        };
+        );
 
         info(format!("Building in parallel with {cpus} CPUs..."));
         let mut build = ParallelBuild::new(cpus, rebuild.len());
