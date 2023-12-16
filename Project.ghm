@@ -1,5 +1,6 @@
 # Greathelm Project Manifest
 Project-Name=Greathelm
+Project-Namespace=io.github.madelynwith5ns.greathelm
 Project-Author=MadelynWith5Ns
 Project-Version=0.1.0
 Project-Type=Custom

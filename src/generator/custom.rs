@@ -115,6 +115,7 @@ impl ProjectGenerator for CustomGenerator {
             format!(
                 "# Greathelm Project Manifest\n\
                 Project-Name={project_name}\n\
+                Project-Namespace=com.example\n\
                 Project-Author=Example Author\n\
                 Project-Version=0.1.0-alpha\n\
                 Project-Type=Custom\n\
