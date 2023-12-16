@@ -19,6 +19,7 @@ mod module;
 mod plugin;
 mod script;
 mod state;
+mod store;
 mod term;
 
 fn main() {
@@ -81,14 +82,16 @@ fn main() {
             .insert(f.clone(), flags.get(f).unwrap().clone());
     }
 
+    let aliases = manifest.get_aliases_map();
+
     let mut pt = match manifest.properties.get("Project-Type") {
         Some(t) => t.clone(),
         None => "%".into(),
     };
     if pt != "" {
-        for a in manifest.aliases.keys() {
+        for a in aliases.keys() {
             if &pt == a {
-                pt = manifest.aliases.get(a).unwrap().clone();
+                pt = aliases.get(a).unwrap().clone();
             }
         }
     }
@@ -106,6 +109,7 @@ fn main() {
     actions.push(Box::new(action::init::InitAction::create()));
     actions.push(Box::new(action::build::BuildAction::create()));
     actions.push(Box::new(action::script::ScriptAction::create()));
+    actions.push(Box::new(action::import::ImportAction::create()));
 
     // load plugins here..
     let plugins = plugin::load_plugins();
@@ -129,9 +133,10 @@ fn main() {
         cli_args: std::env::args().collect(),
     };
 
-    for a in state.manifest.aliases.keys() {
+    let aliases = state.manifest.get_aliases_map();
+    for a in aliases.keys() {
         if &action == a {
-            action = state.manifest.aliases.get(a).unwrap().clone();
+            action = aliases.get(a).unwrap().clone();
         }
     }
     let mut use_action: Option<&Box<dyn Action>> = None;

@@ -2,32 +2,29 @@
                      // (get_<type>_property) that are unused
                      // they are for plugins/later.
 
-use std::{
-    collections::HashMap,
-    path::{Path, PathBuf},
-    str::FromStr,
-};
+use std::{collections::HashMap, path::Path};
 
 use crate::{module::Module, term::error};
 
 #[derive(Clone)]
 pub struct ProjectManifest {
     pub properties: HashMap<String, String>,
-    pub dependencies: Vec<String>,
-    pub directives: Vec<String>,
-    pub modules: Vec<Module>,
-    pub aliases: HashMap<String, String>,
+    pub directives: HashMap<String, Vec<String>>,
 }
 
 impl ProjectManifest {
     pub fn new() -> Self {
-        Self {
+        let mut s = Self {
             properties: HashMap::new(),
-            dependencies: Vec::new(),
-            directives: Vec::new(),
-            modules: Vec::new(),
-            aliases: HashMap::new(),
-        }
+            directives: HashMap::new(),
+        };
+
+        s.directives.insert("Dependency".into(), Vec::new());
+        s.directives.insert("Alias".into(), Vec::new());
+        s.directives.insert("Module".into(), Vec::new());
+        s.directives.insert("Directive".into(), Vec::new());
+
+        return s;
     }
 
     pub fn get_string_property(&self, key: &str, default: &str) -> String {
@@ -93,42 +90,22 @@ impl ProjectManifest {
             if l.starts_with("#") {
                 continue;
             }
-            if l.starts_with("@Dependency ") {
-                self.dependencies
-                    .push(l.split_once("@Dependency ").unwrap().1.into());
-                continue;
-            }
-            if l.starts_with("@Directive ") {
-                self.directives
-                    .push(l.split_once("@Directive ").unwrap().1.into());
-                continue;
-            }
-            if l.starts_with("@Module ") {
-                let module_name = l.split(" ").nth(1).unwrap();
-                let mut files: HashMap<String, String> = HashMap::new();
-                for path in l.split(" ").skip(2) {
-                    if !path.contains(":") {
-                        continue;
+            if l.starts_with("@") && l.contains(" ") {
+                let directive = l.split_once("@").unwrap().1.split_once(" ").unwrap().0;
+                let mut directivecontent = String::new();
+                for c in l.split(" ").skip(1) {
+                    if !directivecontent.is_empty() {
+                        directivecontent.push_str(" ");
                     }
-                    let (homepath, modpath) = path.split_once(":").unwrap();
-                    files.insert(homepath.into(), modpath.into());
+                    directivecontent.push_str(c);
                 }
-                self.modules.push(Module {
-                    module_name: module_name.into(),
-                    files,
-                });
-            }
-            if l.starts_with("@Import ") {
-                let path =
-                    PathBuf::from_str(format!("{}", l.split_once("@Import ").unwrap().1).as_str())
-                        .unwrap();
-                if path.exists() {
-                    self.read_and_append(&path);
+                if !self.directives.contains_key(directive) {
+                    self.directives.insert(directive.into(), Vec::new());
                 }
-            }
-            if l.starts_with("@Alias ") {
-                let (alias, target) = l.split_once("@Alias ").unwrap().1.split_once("=").unwrap();
-                self.aliases.insert(alias.into(), target.into());
+                self.directives
+                    .get_mut(directive)
+                    .unwrap()
+                    .push(directivecontent);
             }
 
             if !l.contains("=") {
@@ -139,5 +116,41 @@ impl ProjectManifest {
 
             self.properties.insert(k.into(), v.into());
         }
+    }
+
+    pub fn get_modules(&self) -> Vec<Module> {
+        let mut modules = Vec::new();
+
+        for m in self.directives.get("Module").unwrap() {
+            let module_name = m.split_once(" ").unwrap().0;
+            let mut files: HashMap<String, String> = HashMap::new();
+            for path in m.split(" ").skip(2) {
+                if !path.contains(":") {
+                    continue;
+                }
+                let (homepath, modpath) = path.split_once(":").unwrap();
+                files.insert(homepath.into(), modpath.into());
+            }
+            modules.push(Module {
+                module_name: module_name.into(),
+                files,
+            });
+        }
+
+        return modules;
+    }
+
+    pub fn get_aliases_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+
+        for a in self.directives.get("Alias").unwrap() {
+            if !a.contains(" ") {
+                continue;
+            }
+            let (k, v) = a.split_once(" ").unwrap();
+            m.insert(k.into(), v.into());
+        }
+
+        return m;
     }
 }

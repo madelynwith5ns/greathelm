@@ -40,7 +40,7 @@ impl Action for BuildAction {
 
         info(format!("Building modules..."));
         script::run_script("pre-modules", vec![]);
-        for module in &state.manifest.modules {
+        for module in &state.manifest.get_modules() {
             module.build();
         }
         script::run_script("post-modules", vec![]);

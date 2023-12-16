@@ -209,10 +209,11 @@ impl ProjectBuilder for CBuilder {
             args.append(&mut link);
             script::run_script("linker", args);
         } else {
+            let dependencies = manifest.directives.get("Dependency").unwrap();
             let mut ld_incantation = Command::new(ld.clone());
 
             // raw object (.o) dependencies
-            for dep in &manifest.dependencies {
+            for dep in dependencies {
                 if !dep.starts_with("!") {
                     continue;
                 }
@@ -232,7 +233,7 @@ impl ProjectBuilder for CBuilder {
                 .stderr(std::process::Stdio::piped());
 
             // normal dependencies
-            for dep in &manifest.dependencies {
+            for dep in dependencies {
                 if dep.starts_with("!") {
                     continue;
                 }
@@ -266,10 +267,20 @@ impl ProjectBuilder for CBuilder {
             }
 
             // no standard lib directives
-            if manifest.directives.contains(&"no-link-libc".into()) {
+            if manifest
+                .directives
+                .get("Directive")
+                .unwrap()
+                .contains(&"no-link-libc".into())
+            {
                 ld_incantation.arg("-nostdlib");
             }
-            if manifest.directives.contains(&"freestanding".into()) {
+            if manifest
+                .directives
+                .get("Directive")
+                .unwrap()
+                .contains(&"ffreestanding".into())
+            {
                 ld_incantation.arg("-ffreestanding");
             }
 
