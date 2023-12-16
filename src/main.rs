@@ -20,6 +20,7 @@ mod plugin;
 mod script;
 mod state;
 mod store;
+mod subprocess;
 mod term;
 
 fn main() {

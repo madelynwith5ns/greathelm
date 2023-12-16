@@ -10,4 +10,5 @@ pub mod plugin;
 pub mod script;
 pub mod state;
 pub mod store;
+pub mod subprocess;
 pub mod term;

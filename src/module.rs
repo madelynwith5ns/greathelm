@@ -1,12 +1,11 @@
 use std::{
     collections::HashMap,
     path::{Path, PathBuf},
-    process::Command,
     str::FromStr,
 };
 
 use crate::{
-    script,
+    script, subprocess,
     term::{error, info},
 };
 
@@ -34,25 +33,7 @@ impl Module {
         script::run_script("prebuild-module", vec![self.module_name.clone()]);
         let module_root = PathBuf::from_str(&format!("modules/{}", self.module_name)).unwrap();
         // smaller greathelm, lesserhelm if you will
-        let greathelm_subprocess = match Command::new(std::env::current_exe().unwrap())
-            .current_dir(module_root)
-            .arg("build")
-            .spawn()
-        {
-            Ok(o) => o,
-            Err(e) => {
-                error(format!("Failed to build module \"{}\"", self.module_name));
-                eprintln!("{e}");
-                return;
-            }
-        }
-        .wait()
-        .unwrap();
-
-        if !greathelm_subprocess.success() {
-            error(format!("Module \"{}\" failed to build.", self.module_name));
-            return;
-        }
+        subprocess::build_project(&module_root);
         script::run_script("postbuild-module", vec![self.module_name.clone()]);
 
         for f in self.files.keys() {
