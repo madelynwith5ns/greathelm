@@ -22,6 +22,7 @@ mod state;
 mod store;
 mod subprocess;
 mod term;
+mod version;
 
 fn main() {
     if std::env::args().len() <= 1 {

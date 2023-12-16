@@ -8,6 +8,7 @@ use crate::{
     manifest::ProjectManifest,
     store,
     term::{error, info, ok, warn},
+    version::Version,
 };
 
 use super::Action;
@@ -62,12 +63,14 @@ impl Action for ImportAction {
                 "Project does not have a Project-Version. Cannot be imported"
             ));
         }
+        let version = Version::parse(version);
         let identifier = NamespacedIdentifier {
             namespace,
             identifier: name,
         };
         let path = store::get_path(&identifier);
-        let path = PathBuf::from_str(&format!("{}/@{version}", path.display())).unwrap();
+        let path =
+            PathBuf::from_str(&format!("{}/@{}", path.display(), version.as_text())).unwrap();
 
         info(format!("Importing project to {}", path.display()));
         if path.exists() {
@@ -102,8 +105,9 @@ impl Action for ImportAction {
         match copy_dir(&cd, &path, &state.manifest) {
             Ok(_) => {
                 ok(format!(
-                    "Successfully imported project \"{}@{version}\"",
+                    "Successfully imported project \"{}@{}\"",
                     identifier.as_text(),
+                    version.as_text()
                 ));
             }
             Err(e) => {

@@ -1,14 +1,16 @@
-use std::{collections::HashMap, io::Write, path::PathBuf, process::Command, str::FromStr};
+use std::{
+    collections::HashMap, io::Write, path::PathBuf, process::Command, str::FromStr, sync::Arc,
+};
 
 use crate::{
     builder::parallel::ParallelBuild,
     ibht,
     manifest::ProjectManifest,
-    script,
+    script, subprocess,
     term::{error, info, ok, warn},
 };
 
-use super::ProjectBuilder;
+use super::{dependency, ProjectBuilder};
 
 pub struct CPPBuilder {}
 impl CPPBuilder {
@@ -38,7 +40,7 @@ impl ProjectBuilder for CPPBuilder {
 
         // Settings
         let cc = manifest.get_string_property("Override-C++-Compiler", "c++");
-        let ld = manifest.get_string_property("Override-C++-Linker", "c++");
+        let ld = manifest.get_string_property("Override-C++-Linker", "cc");
         let opt = manifest.get_string_property("Compiler-Opt-Level", "2");
         let artifact = manifest.get_string_property("Executable-Name", "binary");
         let cflags = match manifest.properties.get("Additional-CC-Flags".into()) {
@@ -117,6 +119,79 @@ impl ProjectBuilder for CPPBuilder {
 
         let mut outs: Vec<String> = Vec::new();
 
+        // Resolve Dependencies
+        let mut link_dep_args: Vec<String> = Vec::new();
+        let mut cc_dep_args: Vec<String> = Vec::new();
+        let dependencies = manifest.directives.get("Dependency").unwrap();
+
+        // raw object (.o) dependencies
+        for dep in dependencies {
+            if !dep.starts_with("raw/") {
+                continue;
+            }
+            let dependency = dep.clone().split_off(1);
+            link.push(format!("lib/obj/{}.o", dependency));
+            info(format!("Linking with raw object {dependency}.o"));
+        }
+
+        // normal dependencies
+        for dep in dependencies {
+            if dep.starts_with("raw/") {
+                continue;
+            }
+            if dep.starts_with("sys/") {
+                let dep = dep.split_once("sys/").unwrap().1;
+                let pkgconf = Command::new("pkgconf")
+                    .arg("--libs")
+                    .arg("--cflags")
+                    .arg(dep)
+                    .output()
+                    .unwrap();
+                let dep_ld_flags = String::from_utf8(pkgconf.stdout).unwrap();
+                let dep_ld_flags = dep_ld_flags.split(" ");
+                for flag in dep_ld_flags {
+                    if flag == " " {
+                        continue;
+                    }
+                    if flag == "\n" {
+                        continue;
+                    }
+                    link_dep_args.push(flag.into());
+                    if flag.starts_with("-I") {
+                        cc_dep_args.push(flag.into());
+                    }
+                }
+            } else if dep.starts_with("provided/") {
+                link_dep_args.push(format!("-l{}", dep.split_once("provided/").unwrap().1));
+            } else {
+                let (id, ver) = dependency::parse_dependency_notation(dep.into());
+                let resolved = dependency::resolve_dependency(id, ver);
+                if resolved.is_some() {
+                    let resolved = resolved.unwrap();
+                    subprocess::build_project(&resolved);
+
+                    link_dep_args.push(format!("-I{}", format!("{}/export", resolved.display())));
+                    link_dep_args.push(format!("-L{}", format!("{}/build", resolved.display())));
+                    cc_dep_args.push(format!("-I{}", format!("{}/export", resolved.display())));
+
+                    let mut dep_manifest: ProjectManifest = ProjectManifest::new();
+                    dep_manifest.read_and_append(
+                        &PathBuf::from_str(format!("{}/Project.ghm", resolved.display()).as_str())
+                            .unwrap(),
+                    );
+                    link_dep_args.push(format!(
+                        "-l{}",
+                        dep_manifest.get_string_property("Executable-Name", "LIBRESOLVEERROR")
+                    ));
+                } else {
+                    error(format!("Failed to resolve a dependency. Abort."));
+                    std::process::exit(1);
+                }
+            }
+        }
+
+        let cc_dep_args = Arc::new(cc_dep_args);
+
         // setup parallel build
         let cpus = manifest.get_usize_property(
             "build-cpus",
@@ -140,6 +215,7 @@ impl ProjectBuilder for CPPBuilder {
                 "build/{}.o",
                 f.clone().file_name().unwrap().to_string_lossy()
             ));
+            let a = Arc::clone(&cc_dep_args);
             build.submit(move || {
                 if script::has_script("compiler") {
                     script::run_script(
@@ -166,6 +242,7 @@ impl ProjectBuilder for CPPBuilder {
                         .arg(format!("-O{opt}")) // -Oopt from earlier
                         .arg("-Wall") // -Wall
                         .args(cflags.clone()) // the funny cflags
+                        .args(a.iter())
                         .arg(format!("{}", f.display())); // actual file
 
                     // debug information
@@ -212,19 +289,7 @@ impl ProjectBuilder for CPPBuilder {
             args.append(&mut link);
             script::run_script("linker", args);
         } else {
-            let dependencies = manifest.directives.get("Dependency").unwrap();
-            let at_directives = manifest.directives.get("Directive").unwrap();
             let mut ld_incantation = Command::new(ld.clone());
-
-            // raw object (.o) dependencies
-            for dep in dependencies {
-                if !dep.starts_with("!") {
-                    continue;
-                }
-                let dependency = dep.clone().split_off(1);
-                link.push(format!("lib/obj/{}.o", dependency));
-                info(format!("Linking with raw object {dependency}.o"));
-            }
 
             let ld_incantation = ld_incantation
                 .arg("-o")
@@ -233,43 +298,16 @@ impl ProjectBuilder for CPPBuilder {
                 .args(link)
                 .arg("-I./lib/include") // local lib headers
                 .arg("-L./lib/shared") // local lib binaries
+                .args(link_dep_args)
                 .stdout(std::process::Stdio::piped())
                 .stderr(std::process::Stdio::piped());
-
-            // normal dependencies
-            for dep in dependencies {
-                if dep.starts_with("!") {
-                    continue;
-                }
-                if dep.starts_with("sys:") {
-                    let dep = dep.split_once("sys:").unwrap().1;
-                    let pkgconf = Command::new("pkgconf")
-                        .arg("--libs")
-                        .arg("--cflags")
-                        .arg(dep)
-                        .output()
-                        .unwrap();
-                    let dep_ld_flags = String::from_utf8(pkgconf.stdout).unwrap();
-                    let dep_ld_flags = dep_ld_flags.split(" ");
-                    for flag in dep_ld_flags {
-                        if flag == " " {
-                            continue;
-                        }
-                        if flag == "\n" {
-                            continue;
-                        }
-                        ld_incantation.arg(flag);
-                    }
-                } else {
-                    ld_incantation.arg(format!("-l{dep}"));
-                }
-            }
 
             // dylibs
             if emit == "shared" || emit == "dylib" {
                 ld_incantation.arg("-shared");
             }
 
+            let at_directives = manifest.directives.get("Directive").unwrap();
             // no standard lib directives
             if at_directives.contains(&"no-link-libc".into()) {
                 ld_incantation.arg("-nostdlib");

@@ -45,6 +45,16 @@ impl ProjectGenerator for CGenerator {
                 std::process::exit(1);
             }
         }
+
+        match std::fs::create_dir("export") {
+            Ok(_) => {}
+            Err(e) => {
+                error(format!("Failed to create project! Error is below:"));
+                eprintln!("{}", e);
+                std::process::exit(1);
+            }
+        }
+
         match std::fs::create_dir("lib/include") {
             Ok(_) => {}
             Err(e) => {

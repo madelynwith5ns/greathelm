@@ -3,6 +3,7 @@ use crate::{identify::NamespacedIdentifier, manifest::ProjectManifest};
 pub mod c;
 pub mod cpp;
 pub mod custom;
+pub mod dependency;
 pub mod parallel;
 
 pub trait ProjectBuilder {
