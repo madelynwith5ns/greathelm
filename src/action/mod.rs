@@ -1,8 +1,10 @@
 use crate::{identify::NamespacedIdentifier, state::GreathelmState};
 
 pub mod build;
+pub mod checkout;
 pub mod import;
 pub mod init;
+pub mod remove;
 pub mod script;
 
 pub trait Action {

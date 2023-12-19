@@ -112,6 +112,8 @@ fn main() {
     actions.push(Box::new(action::build::BuildAction::create()));
     actions.push(Box::new(action::script::ScriptAction::create()));
     actions.push(Box::new(action::import::ImportAction::create()));
+    actions.push(Box::new(action::checkout::CheckoutAction::create()));
+    actions.push(Box::new(action::remove::RemoveAction::create()));
 
     // load plugins here..
     let plugins = plugin::load_plugins();
