@@ -45,14 +45,16 @@ Properties are in the form of Key=Value pairs.
 
 ### @Dependency Directives
 
-#### @Dependency Directives in C Projects
+#### @Dependency Directives in C and C++ Projects
 Dependency directives come in three forms:
 
-- `@Dependency !<dependency>` The exclamation mark denotes this as a raw object dependency. These are located in the `lib/obj/` directory. Greathelm automatically appends `.o`. For example if you use `@Dependency !test` it will link `lib/obj/test.o`.
+- `@Dependency raw/<dependency>` The `raw/` prefix denotes this as a raw object dependency. These are located in the `lib/obj/` directory. Greathelm automatically appends `.o`. For example if you use `@Dependency !test` it will link `lib/obj/test.o`.
 
-- `@Dependency sys:<dependency>` The `sys:` prefix denotes that the dependency should come from your system instead of the `lib/` directory. This uses `pkg-config`.
+- `@Dependency sys/<dependency>` The `sys/` prefix denotes that the dependency should come from your system instead of the `lib/` directory. This uses `pkg-config`.
 
-- `@Dependency <dependency>` A normal dependency with headers in `lib/include/` and binaries in `lib/shared/`.
+- `@Dependency provided/<dependency>` The `provided/` prefix denotes that this dependency is stored locally in the project. Its headers are in `lib/include/` and its binaries are in `lib/shared/`.
+
+- `@Dependency <identifier>` - A normal dependency coming from your local store. If you have previously `greathelm import`-ed a project with the namespaced identifier `com.example.libs:ExampleLib`, you can include it in any new project with `@Dependency com.example.libs:ExampleLib`. You can also append the version like so: `@Dependency com.example.libs:ExampleLib@3.0.0-rc-4`
 
 ### @Directive Directives
 
