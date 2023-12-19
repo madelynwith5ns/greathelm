@@ -12,4 +12,5 @@ pub mod state;
 pub mod store;
 pub mod subprocess;
 pub mod term;
+mod util;
 pub mod version;

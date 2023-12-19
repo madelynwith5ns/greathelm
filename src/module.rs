@@ -47,7 +47,7 @@ impl Module {
                 Ok(exists) => {
                     if exists {
                         if path.is_dir() {
-                            match copy_dir(&path, Path::new(f)) {
+                            match crate::util::copy_dir(&path, Path::new(f), &vec![], false) {
                                 Ok(_) => {}
                                 Err(_) => {
                                     error(format!("Failed getting file \"{f}\" from module \"{}\": Failed to copy", self.module_name));
@@ -74,19 +74,4 @@ impl Module {
 
         script::run_script("postfetch-module", vec![self.module_name.clone()]);
     }
-}
-
-fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> std::io::Result<()> {
-    std::fs::create_dir_all(&to)?;
-    for entry in std::fs::read_dir(from)? {
-        let entry = entry?;
-        let file_type = entry.file_type()?;
-        if file_type.is_dir() {
-            copy_dir(entry.path(), to.as_ref().join(entry.file_name()))?;
-        } else {
-            std::fs::copy(entry.path(), to.as_ref().join(entry.file_name()))?;
-        }
-    }
-
-    Ok(())
 }

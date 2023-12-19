@@ -1,13 +1,9 @@
-use std::{
-    path::{Path, PathBuf},
-    str::FromStr,
-};
+use std::{path::PathBuf, str::FromStr};
 
 use crate::{
     identify::NamespacedIdentifier,
-    manifest::ProjectManifest,
     store,
-    term::{error, info, ok, warn},
+    term::{error, info, ok},
     version::Version,
 };
 
@@ -102,7 +98,18 @@ impl Action for ImportAction {
             }
         };
 
-        match copy_dir(&cd, &path, &state.manifest) {
+        // @StoreIgnore directives
+        let mut ignore = Vec::new();
+        match state.manifest.directives.get("StoreIgnore") {
+            Some(si) => {
+                for i in si {
+                    ignore.push(i.to_owned());
+                }
+            }
+            None => {}
+        }
+
+        match crate::util::copy_dir(&cd, &path, &ignore, false) {
             Ok(_) => {
                 ok(format!(
                     "Successfully imported project \"{}@{}\"",
@@ -116,47 +123,4 @@ impl Action for ImportAction {
             }
         };
     }
-}
-
-fn copy_dir(from: &Path, to: &Path, manifest: &ProjectManifest) -> std::io::Result<()> {
-    if manifest.directives.contains_key("StoreIgnore") {
-        if manifest
-            .directives
-            .get("StoreIgnore")
-            .unwrap()
-            .contains(&format!("{}", from.file_name().unwrap().to_string_lossy()))
-        {
-            info(format!("Ignoring \"{}\"", from.display()));
-            info(format!(
-                "Due to rule \"@StoreIgnore {}\"",
-                from.file_name().unwrap().to_string_lossy()
-            ));
-            return Ok(());
-        }
-    }
-
-    std::fs::create_dir_all(&to)?;
-    for entry in std::fs::read_dir(from)? {
-        let entry = entry?;
-        let file_type = entry.file_type()?;
-        if file_type.is_dir() {
-            copy_dir(
-                entry.path().as_path(),
-                &to.join(entry.file_name()),
-                manifest,
-            )?;
-        } else {
-            match std::fs::copy(entry.path(), &to.join(entry.file_name())) {
-                Ok(_) => {}
-                Err(e) => {
-                    if !manifest.get_bool_property("silent-fail", false) {
-                        warn(format!("Skipping file \"{}\":", entry.path().display()));
-                        warn(format!("{e}"));
-                    }
-                }
-            };
-        }
-    }
-
-    Ok(())
 }

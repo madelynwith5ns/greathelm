@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use crate::{
     builder::dependency,
     term::{error, info, ok},
@@ -44,7 +42,7 @@ impl Action for CheckoutAction {
                                 std::process::exit(1);
                             }
                         };
-                        match copy_dir(&p, &dir) {
+                        match crate::util::copy_dir(&p, &dir, &vec![], false) {
                             Ok(_) => {
                                 ok(format!("Finished checking out {}", id.as_text()));
                             }
@@ -64,27 +62,4 @@ impl Action for CheckoutAction {
             }
         }
     }
-}
-
-fn copy_dir(from: &Path, to: &Path) -> std::io::Result<()> {
-    std::fs::create_dir_all(&to)?;
-    for entry in std::fs::read_dir(from)? {
-        let entry = entry?;
-        let file_type = entry.file_type()?;
-        if file_type.is_dir() {
-            copy_dir(entry.path().as_path(), &to.join(entry.file_name()))?;
-        } else {
-            match std::fs::copy(entry.path(), &to.join(entry.file_name())) {
-                Ok(_) => {}
-                Err(e) => {
-                    error(format!(
-                        "Failed to copy {}",
-                        entry.file_name().to_string_lossy()
-                    ));
-                    eprintln!("{e}");
-                }
-            };
-        }
-    }
-    Ok(())
 }

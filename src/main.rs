@@ -22,6 +22,7 @@ mod state;
 mod store;
 mod subprocess;
 mod term;
+mod util;
 mod version;
 
 fn main() {
