@@ -1,3 +1,9 @@
+use std::fmt::Display;
+
+/**
+ * NamespacedIdentifiers identify some component (builder, generator, action) in the case it is
+ * ambiguous.
+ */
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct NamespacedIdentifier {
     /**
@@ -9,10 +15,9 @@ pub struct NamespacedIdentifier {
 }
 
 impl NamespacedIdentifier {
-    #![allow(dead_code)]
-    pub fn as_text(&self) -> String {
-        return format!("{}:{}", self.namespace, self.identifier);
-    }
+    /**
+     * Parses a NamespacedIdentifier back from a text form.
+     */
     pub fn parse_text(text: &String) -> Self {
         if text.contains(":") {
             let (namespace, identifier) = text.split_once(":").unwrap();
@@ -26,5 +31,11 @@ impl NamespacedIdentifier {
                 identifier: text.clone(),
             };
         }
+    }
+}
+
+impl Display for NamespacedIdentifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.namespace, self.identifier)
     }
 }

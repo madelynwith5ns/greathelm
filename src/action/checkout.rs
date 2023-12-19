@@ -5,6 +5,11 @@ use crate::{
 
 use super::Action;
 
+/**
+ * Built-in action (io.github.madelynwith5ns.greathelm:Checkout) for copying a project out of the
+ * global store once it has been imported.
+ * Requires a dependency-notation-form identifier at state.cli_args[2].
+ */
 pub struct CheckoutAction {}
 impl CheckoutAction {
     pub fn create() -> Self {
@@ -22,7 +27,7 @@ impl Action for CheckoutAction {
     fn get_identifier(&self) -> crate::identify::NamespacedIdentifier {
         crate::identify::NamespacedIdentifier {
             namespace: "io.github.madelynwith5ns.greathelm".into(),
-            identifier: "Script".into(),
+            identifier: "Checkout".into(),
         }
     }
 
@@ -44,7 +49,7 @@ impl Action for CheckoutAction {
                         };
                         match crate::util::copy_dir(&p, &dir, &vec![], false) {
                             Ok(_) => {
-                                ok(format!("Finished checking out {}", id.as_text()));
+                                ok(format!("Finished checking out {id}"));
                             }
                             Err(e) => {
                                 error(format!("Failed to checkout."));

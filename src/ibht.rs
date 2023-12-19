@@ -2,6 +2,9 @@ use std::{collections::HashMap, fs::ReadDir, path::Path};
 
 use crate::term::error;
 
+/**
+ * Hashes all files in the src/ directory and then writes the result to the IBHT.ghd file.
+ */
 pub fn write_ibht() {
     let hashes = gen_hashtable();
 
@@ -20,6 +23,9 @@ pub fn write_ibht() {
     }
 }
 
+/**
+ * Generates a table of files in src/ to their MD5 hashes.
+ */
 pub fn gen_hashtable() -> HashMap<String, String> {
     let mut hashes: HashMap<String, String> = HashMap::new();
 
@@ -78,6 +84,9 @@ fn recurse_dir(dir: ReadDir, hashes: &mut HashMap<String, String>) {
     }
 }
 
+/**
+ * Reads IBHT.ghd from disk into a HashMap of files within src/ to their MD5 hashes.
+ */
 pub fn read_ibht() -> HashMap<String, String> {
     let ibht_path = Path::new("IBHT.ghd");
     if !ibht_path.exists() {

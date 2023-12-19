@@ -5,6 +5,10 @@ use crate::{
 
 use super::Action;
 
+/**
+ * Built-in (io.github.madelynwith5ns.greathelm:PackageScript) action for running a script within an
+ * imported package. Requires a dependency-notation identifier at state.cli_args[2].
+ */
 pub struct PackageScript {}
 impl PackageScript {
     pub fn create() -> Self {

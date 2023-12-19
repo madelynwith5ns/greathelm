@@ -5,6 +5,11 @@ use crate::{
 
 use super::Action;
 
+/**
+ * Built-in (io.github.madelynwith5ns.greathelm:PackageShell) for spawning a shell within the
+ * directory of a project within the local store. Requires a dependency-notation identifier at
+ * state.cli_args[2].
+ */
 pub struct PackageShell {}
 impl PackageShell {
     pub fn create() -> Self {

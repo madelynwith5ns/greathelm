@@ -12,6 +12,9 @@ use crate::{
 
 use super::ProjectBuilder;
 
+/**
+ * Built-in builder for C projects.
+ */
 pub struct CBuilder {}
 
 impl CBuilder {

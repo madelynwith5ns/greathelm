@@ -9,18 +9,27 @@ use crate::{
     term::{error, info},
 };
 
+/**
+ * Defines a Module specified with the @Module directive.
+ */
 #[derive(Clone)]
 pub struct Module {
-    pub module_name: String, // name of the module
-    // this is also the subfolder
-    // within modules/ in which this
-    // module resides.
-    pub files: HashMap<String, String>, // map of paths within the parent project
-                                        // paths within the module which should be
-                                        // grabbed.
+    /**
+     * Name of the module. This is also its path within modules/ in the project it is included
+     * from.
+     */
+    pub module_name: String,
+    /**
+     * Map of paths within the parent project to paths within the module project which should be
+     * copied.
+     */
+    pub files: HashMap<String, String>,
 }
 
 impl Module {
+    /**
+     * Builds this module and copies its files to their locations in the parent project.
+     */
     pub fn build(&self) {
         info(format!("Module \"{}\"", self.module_name));
         for f in self.files.keys() {

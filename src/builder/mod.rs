@@ -6,8 +6,20 @@ pub mod custom;
 pub mod dependency;
 pub mod parallel;
 
+/**
+ * Trait for project builders. These builders handle building the project, validating if it
+ * can be built and cleaning up.
+ */
 pub trait ProjectBuilder {
+    /**
+     * Pretty name of the builder. This is not used to call the builder. It is currently completely
+     * unused but will be used in a plugin-tree view in the future.
+     */
     fn get_name(&self) -> String;
+    /**
+     * Short names of this builder used to actually call the builder. Can be used in the
+     * Project-Type property.
+     */
     fn get_aliases(&self) -> Vec<String>;
     /**
      * Namespaced identifiers are used for builders and generators
@@ -16,6 +28,9 @@ pub trait ProjectBuilder {
      * mean using the identifier. Such as: "greathelm:c" or "example:c"
      */
     fn get_identifier(&self) -> NamespacedIdentifier;
+    /**
+     * Actually builds the project.
+     */
     fn build(&self, manifest: &ProjectManifest);
     /**
      * Validate is called before build in an effort to ensure the project

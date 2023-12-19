@@ -4,6 +4,11 @@ use crate::{manifest::ProjectManifest, script, term::error};
 
 use super::ProjectBuilder;
 
+/**
+ * Built-in builder for Custom projects. These projects use scripts to either use a completely
+ * custom build process or wrap another build system's project (which might be done in the case of
+ * using Greathelm to build a system iso image).
+ */
 pub struct CustomBuilder {}
 impl CustomBuilder {
     pub fn create() -> Self {

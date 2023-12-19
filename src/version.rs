@@ -1,5 +1,8 @@
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
+/**
+ * Contains a version in the form of major.minor.patch(-alpha/-beta)(-rc-<rc_number>)
+ */
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct Version {
     pub major: u64,
@@ -10,6 +13,9 @@ pub struct Version {
 }
 
 impl Version {
+    /**
+     * Parse out text into a Version.
+     */
     pub fn parse(text: String) -> Version {
         let mut version = Version {
             major: 0,
@@ -60,8 +66,10 @@ impl Version {
 
         return version;
     }
+}
 
-    pub fn as_text(&self) -> String {
+impl Display for Version {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut str = format!("{}.{}.{}", self.major, self.minor, self.patch);
         if self.pre_state == 1 {
             str.push_str("-alpha");
@@ -72,7 +80,7 @@ impl Version {
         if self.rc_num != 0 {
             str.push_str(format!("-rc-{}", self.rc_num).as_str());
         }
-        return str;
+        write!(f, "{str}")
     }
 }
 

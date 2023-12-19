@@ -6,6 +6,10 @@ use crate::{
 
 use super::Action;
 
+/**
+ * Built-in (io.github.madelynwith5ns.greathelm:Remove) action to remove all versions of a package
+ * from the local store.
+ */
 pub struct RemoveAction {}
 impl RemoveAction {
     pub fn create() -> Self {
@@ -43,7 +47,7 @@ impl Action for RemoveAction {
                         }
                     };
                 } else {
-                    error(format!("{} is not in store.", id.as_text()));
+                    error(format!("{id} is not in store."));
                 }
             }
             None => {

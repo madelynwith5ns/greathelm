@@ -1,11 +1,7 @@
 use std::{path::PathBuf, str::FromStr};
 
 use crate::{
-    action::Action,
-    builder::ProjectBuilder,
-    config,
-    generator::ProjectGenerator,
-    term::{error, ok},
+    action::Action, builder::ProjectBuilder, config, generator::ProjectGenerator, term::error,
 };
 
 // this is just here to keep things loaded because libloading automatically
@@ -43,9 +39,18 @@ pub struct GreathelmPlugin {
      * generators store after plugin init.
      */
     pub generators: Vec<Box<dyn ProjectGenerator>>,
+    /**
+     * This Vec contains all the plugin's actions.
+     * Same as with builders and generators it is copied into an actual global Vec after plugin
+     * init.
+     */
     pub actions: Vec<Box<dyn Action>>,
 }
 
+/**
+ * Loads all plugins in the (CONFIGROOT)/plugins directory. Called at startup. Do not call past
+ * then.
+ */
 pub fn load_plugins() -> Vec<GreathelmPlugin> {
     let mut plugins = Vec::new();
 
@@ -87,7 +92,5 @@ pub fn load_plugins() -> Vec<GreathelmPlugin> {
             Err(_) => {}
         }
     }
-
-    ok(format!("Successfully loaded {} plugins.", plugins.len()));
     return plugins;
 }

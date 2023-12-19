@@ -8,6 +8,9 @@ use crate::term::{error, ok};
 
 use super::ProjectGenerator;
 
+/**
+ * Project generator for Custom projects.
+ */
 pub struct CustomGenerator {}
 impl CustomGenerator {
     pub fn create() -> Self {

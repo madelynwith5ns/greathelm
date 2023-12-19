@@ -2,6 +2,10 @@ use crate::{script, term::error};
 
 use super::Action;
 
+/**
+ * Built-in (io.github.madelynwith5ns.greathelm:Script) action to run a script in the current
+ * project.
+ */
 pub struct ScriptAction {}
 impl ScriptAction {
     pub fn create() -> Self {

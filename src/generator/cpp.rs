@@ -4,6 +4,9 @@ use crate::term::{error, ok};
 
 use super::ProjectGenerator;
 
+/**
+ * Project generator for C++ projects.
+ */
 pub struct CPPGenerator {}
 impl CPPGenerator {
     pub fn create() -> Self {

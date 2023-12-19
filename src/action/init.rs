@@ -6,6 +6,10 @@ use crate::{
 
 use super::Action;
 
+/**
+ * Built-in (io.github.madelynwith5ns.greathelm:Initialize) action for creating a project in the
+ * current directory.
+ */
 pub struct InitAction {}
 impl InitAction {
     pub fn create() -> Self {

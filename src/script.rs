@@ -25,6 +25,9 @@ pub fn has_script(script_name: &str) -> bool {
     }
 }
 
+/**
+ * Runs all instances of `script_name` found.
+ */
 pub fn run_script(script_name: &str, args: Vec<String>) {
     let str = format!(
         "{}/scripts/{script_name}.sh",

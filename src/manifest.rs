@@ -2,10 +2,19 @@
                      // (get_<type>_property) that are unused
                      // they are for plugins/later.
 
-use std::{collections::HashMap, path::Path};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 
 use crate::{module::Module, term::error};
 
+/**
+ * Struct for Project Manifests. This is usually a combined manifest of
+ * (CONFIGROOT)/UserManifest.ghm (PROJECTROOT)/Project.ghm and (PROJECTROOT)/Project.local.ghm and
+ * any additional manifests they may @Import.
+ */
 #[derive(Clone)]
 pub struct ProjectManifest {
     pub properties: HashMap<String, String>,
@@ -13,6 +22,9 @@ pub struct ProjectManifest {
 }
 
 impl ProjectManifest {
+    /**
+     * Creates an empty ProjectManifest
+     */
     pub fn new() -> Self {
         let mut s = Self {
             properties: HashMap::new(),
@@ -27,6 +39,9 @@ impl ProjectManifest {
         return s;
     }
 
+    /**
+     * Gets the property `key` as a String. Defaulting to `default` if not present.
+     */
     pub fn get_string_property(&self, key: &str, default: &str) -> String {
         match self.properties.get(key) {
             Some(k) => k.clone(),
@@ -34,6 +49,9 @@ impl ProjectManifest {
         }
     }
 
+    /**
+     * Gets the property `key` as an i32. Defaulting to `default` if not present or not an i32.
+     */
     pub fn get_i32_property(&self, key: &str, default: i32) -> i32 {
         match self.get_string_property(key, &format!("{default}")).parse() {
             Ok(v) => v,
@@ -41,6 +59,9 @@ impl ProjectManifest {
         }
     }
 
+    /**
+     * Gets the property `key` as a u32. Defaulting to `default` if not present or not a u32.
+     */
     pub fn get_u32_property(&self, key: &str, default: u32) -> u32 {
         match self.get_string_property(key, &format!("{default}")).parse() {
             Ok(v) => v,
@@ -48,6 +69,9 @@ impl ProjectManifest {
         }
     }
 
+    /**
+     * Gets the property `key` as an i64. Defaulting to `default` if not present or not an i64.
+     */
     pub fn get_i64_property(&self, key: &str, default: i64) -> i64 {
         match self.get_string_property(key, &format!("{default}")).parse() {
             Ok(v) => v,
@@ -55,6 +79,9 @@ impl ProjectManifest {
         }
     }
 
+    /**
+     * Gets the property `key` as a u64. Defaulting to `default` if not present or not a u64.
+     */
     pub fn get_u64_property(&self, key: &str, default: u64) -> u64 {
         match self.get_string_property(key, &format!("{default}")).parse() {
             Ok(v) => v,
@@ -62,6 +89,9 @@ impl ProjectManifest {
         }
     }
 
+    /**
+     * Gets the property `key` as a usize. Defaulting to `default` if not present or not a usize.
+     */
     pub fn get_usize_property(&self, key: &str, default: usize) -> usize {
         match self.get_string_property(key, &format!("{default}")).parse() {
             Ok(v) => v,
@@ -69,6 +99,9 @@ impl ProjectManifest {
         }
     }
 
+    /**
+     * Gets the property `key` as a bool. Defaulting to `default` if not present or not a bool.
+     */
     pub fn get_bool_property(&self, key: &str, default: bool) -> bool {
         match self.get_string_property(key, &format!("{default}")).parse() {
             Ok(v) => v,
@@ -76,6 +109,9 @@ impl ProjectManifest {
         }
     }
 
+    /**
+     * Reads the manifest at `path` and appends its contents to this manifest.
+     */
     pub fn read_and_append(&mut self, path: &Path) {
         let raw_file = match std::fs::read_to_string(path) {
             Ok(data) => data,
@@ -89,6 +125,14 @@ impl ProjectManifest {
         for l in raw_file.split("\n") {
             if l.starts_with("#") {
                 continue;
+            }
+            if l.starts_with("@Import ") {
+                let path =
+                    PathBuf::from_str(format!("{}", l.split_once("@Import ").unwrap().1).as_str())
+                        .unwrap();
+                if path.exists() {
+                    self.read_and_append(&path);
+                }
             }
             if l.starts_with("@") && l.contains(" ") {
                 let directive = l.split_once("@").unwrap().1.split_once(" ").unwrap().0;
@@ -118,6 +162,9 @@ impl ProjectManifest {
         }
     }
 
+    /**
+     * Gets the @Module directives as Module structs.
+     */
     pub fn get_modules(&self) -> Vec<Module> {
         let mut modules = Vec::new();
 
@@ -140,6 +187,9 @@ impl ProjectManifest {
         return modules;
     }
 
+    /**
+     * Gets a map of all the aliases defined with @Alias directives.
+     */
     pub fn get_aliases_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
 

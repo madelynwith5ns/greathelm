@@ -2,6 +2,9 @@ use std::path::Path;
 
 use crate::term::{error, info, ok};
 
+/**
+ * Builds the project located at `path`.
+ */
 pub fn build_project(path: &Path) {
     info(format!("Spawning `greathelm build` subprocess..."));
     let status = duct::cmd!(std::env::current_exe().unwrap(), "build")

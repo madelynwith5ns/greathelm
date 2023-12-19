@@ -12,6 +12,9 @@ use crate::{
 
 use super::{dependency, ProjectBuilder};
 
+/**
+ * Built-in builder for C++ projects.
+ */
 pub struct CPPBuilder {}
 impl CPPBuilder {
     pub fn create() -> Self {

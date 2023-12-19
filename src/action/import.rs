@@ -2,13 +2,19 @@ use std::{path::PathBuf, str::FromStr};
 
 use crate::{
     identify::NamespacedIdentifier,
-    store,
+    script, store,
     term::{error, info, ok},
     version::Version,
 };
 
 use super::Action;
 
+/**
+ * Built-in (io.github.madelynwith5ns.greathelm:Import) action for importing a project into the
+ * global store.
+ * Does NOT call build.
+ * Calls the pre-import script.
+ */
 pub struct ImportAction {}
 impl ImportAction {
     pub fn create() -> Self {
@@ -65,8 +71,9 @@ impl Action for ImportAction {
             identifier: name,
         };
         let path = store::get_path(&identifier);
-        let path =
-            PathBuf::from_str(&format!("{}/@{}", path.display(), version.as_text())).unwrap();
+        let path = PathBuf::from_str(&format!("{}/@{version}", path.display())).unwrap();
+
+        script::run_script("pre-import", vec![format!("{}", path.display())]);
 
         info(format!("Importing project to {}", path.display()));
         if path.exists() {
@@ -112,9 +119,7 @@ impl Action for ImportAction {
         match crate::util::copy_dir(&cd, &path, &ignore, false) {
             Ok(_) => {
                 ok(format!(
-                    "Successfully imported project \"{}@{}\"",
-                    identifier.as_text(),
-                    version.as_text()
+                    "Successfully imported project \"{identifier}@{version}\""
                 ));
             }
             Err(e) => {

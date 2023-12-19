@@ -9,6 +9,11 @@ use crate::{
 
 use super::Action;
 
+/**
+ * Built-in action (io.github.madelynwith5ns.greathelm:Build) for building a project.
+ * This is where modules are built.
+ * Calls validate() and then build() if that succeeds.
+ */
 pub struct BuildAction {}
 impl BuildAction {
     pub fn create() -> Self {
@@ -88,7 +93,13 @@ impl Action for BuildAction {
                     };
                 }
 
-                builder.build(&state.manifest);
+                info(format!("Validating..."));
+                if builder.validate(&state.manifest) {
+                    info(format!("Building..."));
+                    builder.build(&state.manifest);
+                } else {
+                    error(format!("Validating project failed."));
+                }
             }
             None => {
                 error(format!(

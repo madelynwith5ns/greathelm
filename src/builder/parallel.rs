@@ -4,6 +4,9 @@ use crate::term::error;
 
 type Job = Box<dyn FnOnce() + Send + 'static>;
 
+/**
+ * Struct defining a specific parallel building run.
+ */
 pub struct ParallelBuild {
     threads: Vec<std::thread::JoinHandle<()>>,
     sender: mpsc::Sender<Job>,
@@ -11,6 +14,10 @@ pub struct ParallelBuild {
 }
 
 impl ParallelBuild {
+    /**
+     * Create a new ParallelBuild using `size` CPUs (parallel jobs) which will have a total of
+     * `total_jobs` jobs run on it.
+     */
     pub fn new(size: usize, total_jobs: usize) -> Self {
         assert!(size > 0);
         let (sender, receiver): (mpsc::Sender<Job>, mpsc::Receiver<Job>) =
@@ -54,6 +61,9 @@ impl ParallelBuild {
         }
     }
 
+    /**
+     * Submit a job to this ParallelBuild.
+     */
     pub fn submit<F>(&mut self, f: F)
     where
         F: FnOnce() + Send + 'static,
@@ -61,6 +71,10 @@ impl ParallelBuild {
         self.sender.send(Box::new(f)).unwrap();
     }
 
+    /**
+     * Waits for this ParallelBuild to finish running.
+     * You MUST call this or the ParallelBuild's threads will not be joined.
+     */
     pub fn wait(&mut self) {
         for _ in 0..self.size {
             self.submit(|| {});

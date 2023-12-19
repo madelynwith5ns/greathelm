@@ -7,6 +7,10 @@ use crate::{
     version::{self, Version},
 };
 
+/**
+ * Parse a dependency-notation identifier (something like `<identifier>@<version>`, `<identifier>`)
+ * into a tuple of the identifier and (if present) version.
+ */
 pub fn parse_dependency_notation(notation: String) -> (NamespacedIdentifier, Option<Version>) {
     if notation.contains("@") {
         let spl = notation.split_once("@").unwrap();
@@ -29,8 +33,8 @@ pub fn resolve_dependency(
             "{}{}",
             path.display(),
             match &version {
-                Some(s) => {
-                    format!("/@{}", s.as_text())
+                Some(v) => {
+                    format!("/@{v}")
                 }
                 None => {
                     "".into()
@@ -59,8 +63,7 @@ pub fn resolve_dependency(
 
         if versions.is_empty() {
             error(format!(
-                "Item {} was resolved, but there are no present versions!",
-                identifier.as_text()
+                "Item {identifier} was resolved, but there are no present versions!"
             ));
             return None;
         } else {
@@ -68,23 +71,18 @@ pub fn resolve_dependency(
             versions.reverse();
 
             let v = versions.get(0).unwrap();
-            let path =
-                PathBuf::from_str(format!("{}/@{}", path.display(), v.as_text()).as_str()).unwrap();
+            let path = PathBuf::from_str(format!("{}/@{v}", path.display()).as_str()).unwrap();
             if path.exists() {
                 return Some(path);
             } else {
                 error(format!(
-                    "Item {} was resolved, but the version folder is not present?",
-                    identifier.as_text()
+                    "Item {identifier} was resolved, but the version folder is not present?"
                 ));
                 return None;
             }
         }
     } else {
-        error(format!(
-            "Item {} could not be resolved.",
-            identifier.as_text()
-        ));
+        error(format!("Item {identifier} could not be resolved."));
         return None;
     }
 }
