@@ -78,6 +78,7 @@ Let's go over them one by one.
 ```ghm
 # Greathelm Project Manifest
 Project-Name=example
+Project-Namespace=com.example
 Project-Author=Example Author
 Project-Version=0.1.0-alpha
 Project-Type=C
