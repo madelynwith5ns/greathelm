@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use crate::term::{error, ok};
+use crate::term::*;
 
 use super::ProjectGenerator;
 
@@ -34,8 +34,10 @@ impl ProjectGenerator for CPPGenerator {
         match std::fs::create_dir("src") {
             Ok(_) => {}
             Err(e) => {
-                error(format!("Failed to create project! Error is below:"));
-                eprintln!("{}", e);
+                print_error_obj(
+                    Some("Failed to create project! Error is below:".into()),
+                    Box::new(e),
+                );
                 std::process::exit(1);
             }
         };
@@ -43,32 +45,40 @@ impl ProjectGenerator for CPPGenerator {
         match std::fs::create_dir("lib") {
             Ok(_) => {}
             Err(e) => {
-                error(format!("Failed to create project! Error is below:"));
-                eprintln!("{}", e);
+                print_error_obj(
+                    Some("Failed to create project! Error is below:".into()),
+                    Box::new(e),
+                );
                 std::process::exit(1);
             }
         }
         match std::fs::create_dir("lib/include") {
             Ok(_) => {}
             Err(e) => {
-                error(format!("Failed to create project! Error is below:"));
-                eprintln!("{}", e);
+                print_error_obj(
+                    Some("Failed to create project! Error is below:".into()),
+                    Box::new(e),
+                );
                 std::process::exit(1);
             }
         }
         match std::fs::create_dir("lib/shared") {
             Ok(_) => {}
             Err(e) => {
-                error(format!("Failed to create project! Error is below:"));
-                eprintln!("{}", e);
+                print_error_obj(
+                    Some("Failed to create project! Error is below:".into()),
+                    Box::new(e),
+                );
                 std::process::exit(1);
             }
         }
         match std::fs::create_dir("lib/obj") {
             Ok(_) => {}
             Err(e) => {
-                error(format!("Failed to create project! Error is below:"));
-                eprintln!("{}", e);
+                print_error_obj(
+                    Some("Failed to create project! Error is below:".into()),
+                    Box::new(e),
+                );
                 std::process::exit(1);
             }
         }
@@ -82,8 +92,10 @@ impl ProjectGenerator for CPPGenerator {
         match std::fs::write(Path::new("src/main.cpp"), main_cpp_contents) {
             Ok(_) => {}
             Err(e) => {
-                error(format!("Failed to create project! Error is below:"));
-                eprintln!("{}", e);
+                print_error_obj(
+                    Some("Failed to create project! Error is below:".into()),
+                    Box::new(e),
+                );
                 std::process::exit(1);
             }
         };
@@ -113,12 +125,14 @@ impl ProjectGenerator for CPPGenerator {
         ) {
             Ok(_) => {}
             Err(e) => {
-                error(format!("Failed to create project! Error is below:"));
-                eprintln!("{}", e);
+                print_error_obj(
+                    Some("Failed to create project! Error is below:".into()),
+                    Box::new(e),
+                );
                 std::process::exit(1);
             }
         };
 
-        ok(format!("Succeeded in generating project from template."));
+        ok!("Succeeded in generating project from template.");
     }
 }

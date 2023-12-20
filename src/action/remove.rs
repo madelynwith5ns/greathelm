@@ -1,8 +1,4 @@
-use crate::{
-    identify::NamespacedIdentifier,
-    store,
-    term::{error, info, ok},
-};
+use crate::{identify::NamespacedIdentifier, store, term::*};
 
 use super::Action;
 
@@ -34,24 +30,24 @@ impl Action for RemoveAction {
     fn execute(&self, state: &crate::state::GreathelmState) {
         match state.cli_args.get(2) {
             Some(v) => {
-                info(format!("Attempting to resolve {v}"));
+                info!("Attempting to resolve \x1bc{v}\x1br");
                 let id = NamespacedIdentifier::parse_text(v);
                 let path = store::get_path(&id);
                 if path.exists() {
                     match std::fs::remove_dir_all(path) {
                         Ok(_) => {
-                            ok(format!("Succeeded in removing from store."));
+                            ok!("Succeeded in removing from store.");
                         }
                         Err(_) => {
-                            error(format!("Failed to remove from store."));
+                            error!("Failed to remove from store.");
                         }
                     };
                 } else {
-                    error(format!("{id} is not in store."));
+                    error!("{id} is not in store.");
                 }
             }
             None => {
-                error(format!("Please provide an identifier."));
+                error!("Please provide an identifier.");
             }
         }
     }

@@ -4,10 +4,7 @@ use std::{
     str::FromStr,
 };
 
-use crate::{
-    script, subprocess,
-    term::{error, info},
-};
+use crate::{script, subprocess, term::*};
 
 /**
  * Defines a Module specified with the @Module directive.
@@ -31,12 +28,12 @@ impl Module {
      * Builds this module and copies its files to their locations in the parent project.
      */
     pub fn build(&self) {
-        info(format!("Module \"{}\"", self.module_name));
+        info!("Module \x1bc{}\x1br", self.module_name);
         for f in self.files.keys() {
-            info(format!(
-                "|-> Provides \"{f}\" from \"{}\"",
+            info!(
+                "|-> Provides \x1bc{f}\x1br from \x1bc{}\x1br",
                 self.files.get(f).unwrap()
-            ));
+            );
         }
 
         script::run_script("prebuild-module", vec![self.module_name.clone()]);
@@ -59,24 +56,24 @@ impl Module {
                             match crate::util::copy_dir(&path, Path::new(f), &vec![], false) {
                                 Ok(_) => {}
                                 Err(_) => {
-                                    error(format!("Failed getting file \"{f}\" from module \"{}\": Failed to copy", self.module_name));
+                                    error!("Failed getting file \x1bc{f}\x1br from module \x1bc{}\x1br: Failed to copy", self.module_name);
                                 }
                             }
                         } else {
                             match std::fs::copy(&path, Path::new(f)) {
                                 Ok(_) => {}
                                 Err(_) => {
-                                    error(format!("Failed getting file \"{f}\" from module \"{}\": Failed to copy", self.module_name));
+                                    error!("Failed getting file \x1bc{f}\x1br from module \x1bc{}\x1br: Failed to copy", self.module_name);
                                 }
                             };
                         }
                     }
                 }
                 Err(_) => {
-                    error(format!(
-                        "Failed getting file \"{f}\" from module \"{}\": File not present.",
+                    error!(
+                        "Failed getting file \x1bc{f}\x1br from module \x1bc{}\x1br: File not present.",
                         self.module_name
-                    ));
+                    );
                 }
             }
         }

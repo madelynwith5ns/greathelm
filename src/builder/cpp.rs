@@ -3,11 +3,7 @@ use std::{
 };
 
 use crate::{
-    builder::parallel::ParallelBuild,
-    ibht,
-    manifest::ProjectManifest,
-    script, subprocess,
-    term::{error, info, ok, warn},
+    builder::parallel::ParallelBuild, ibht, manifest::ProjectManifest, script, subprocess, term::*,
 };
 
 use super::{dependency, ProjectBuilder};
@@ -60,22 +56,22 @@ impl ProjectBuilder for CPPBuilder {
         }; // LDFLAGS comma separated
         let mut emit = manifest.get_string_property("Emit", "binary");
         if emit == "binary" || emit == "executable" {
-            info(format!("Emitting an Executable Binary"));
+            info!("Emitting an \x1bcExecutable Binary\x1br");
         } else if emit == "shared" || emit == "dylib" {
-            info(format!("Emitting a Shared Object"));
+            info!("Emitting a \x1bcDynamic Library\x1br");
         } else {
-            warn(format!("Unrecognized EMIT. Defaulting to binary."));
+            warning!("Unrecognized EMIT. Defaulting to \x1bcbinary\x1br.");
             emit = "binary".into();
         } // output type. binary/executable = normal executable, shared/dylib = .so shared object
         let debug_info = manifest.get_bool_property("debug-info", false);
-        let force_full_rebuild = manifest.get_bool_property("force-full-rebuild", true);
+        let force_full_rebuild = manifest.get_bool_property("force-full-rebuild", false);
         let stdlibflavor = manifest.get_string_property("C++-Stdlib-Flavor", "stdc++");
 
-        info(format!("Using CC \"{cc}\""));
-        info(format!("Using LD \"{ld}\""));
+        info!("Using C++ \x1bc{cc}\x1br");
+        info!("Using LD \x1bc{ld}\x1br");
 
         // find things that changed and should be rebuilt
-        info(format!("Hashing project files..."));
+        info!("Hashing project files...");
         let hashes = ibht::gen_hashtable();
         let ibht = ibht::read_ibht();
 
@@ -95,7 +91,7 @@ impl ProjectBuilder for CPPBuilder {
             ));
 
             if force_full_rebuild {
-                info(format!("Running a full rebuild. {k} will be rebuilt."));
+                info!("Running a full rebuild. \x1bc{k}\x1br will be rebuilt.");
                 rebuild.insert(
                     PathBuf::from_str(k).unwrap(),
                     hashes.get(k).unwrap().to_owned(),
@@ -104,7 +100,7 @@ impl ProjectBuilder for CPPBuilder {
             }
 
             if !ibht.contains_key(k) {
-                info(format!("File {k} changed. It will be rebuilt."));
+                info!("File \x1bc{k}\x1br changed. It will be rebuilt.");
                 rebuild.insert(
                     PathBuf::from_str(k).unwrap(),
                     hashes.get(k).unwrap().to_owned(),
@@ -112,7 +108,7 @@ impl ProjectBuilder for CPPBuilder {
                 continue;
             }
             if hashes.get(k).unwrap() != ibht.get(k).unwrap() {
-                info(format!("File {k} changed. It will be rebuilt."));
+                info!("File \x1bc{k}\x1br changed. It will be rebuilt.");
                 rebuild.insert(
                     PathBuf::from_str(k).unwrap(),
                     hashes.get(k).unwrap().to_owned(),
@@ -134,7 +130,7 @@ impl ProjectBuilder for CPPBuilder {
             }
             let dependency = dep.clone().split_off(1);
             link.push(format!("lib/obj/{}.o", dependency));
-            info(format!("Linking with raw object {dependency}.o"));
+            info!("Linking with raw object \x1bc{dependency}.o\x1br");
         }
 
         // normal dependencies
@@ -187,7 +183,7 @@ impl ProjectBuilder for CPPBuilder {
                         dep_manifest.get_string_property("Executable-Name", "LIBRESOLVEERROR")
                     ));
                 } else {
-                    error(format!("Failed to resolve a dependency. Abort."));
+                    error!("Failed to resolve a dependency. Abort.");
                     std::process::exit(1);
                 }
             }
@@ -204,7 +200,7 @@ impl ProjectBuilder for CPPBuilder {
             },
         );
 
-        info(format!("Building in parallel with {cpus} CPUs..."));
+        info!("Building in parallel with \x1bc{cpus}\x1br CPUs...");
         let mut build = ParallelBuild::new(cpus, rebuild.len());
 
         // actually build all the things
@@ -264,9 +260,9 @@ impl ProjectBuilder for CPPBuilder {
                     std::io::stderr().flush().ok();
                     if cc_incantation.status.success() {
                         // result message
-                        ok(format!("CC {}", f.display()));
+                        ok!("CC \x1bc{}\x1br", f.display());
                     } else {
-                        error(format!("CC {}", f.display()));
+                        error!("CC \x1bc{}\x1br", f.display());
                         std::process::exit(1);
                     }
                 }
@@ -277,7 +273,7 @@ impl ProjectBuilder for CPPBuilder {
         build.wait();
 
         // link
-        info(format!("LD {artifact}"));
+        info!("LD \x1bc{artifact}\x1br");
 
         let mut prefix = "";
         let mut suffix = "";
@@ -341,19 +337,17 @@ impl ProjectBuilder for CPPBuilder {
             std::io::stderr().flush().ok();
 
             if ld_incantation.status.success() {
-                ok(format!("Project successfully built!"));
+                ok!("Project successfully built!");
             } else {
-                error(format!("Project failed to build."));
+                error!("Project failed to build.");
             }
         }
 
-        info(format!("Regenerating IBHT for future runs..."));
+        info!("Regenerating IBHT for future runs...");
         ibht::write_ibht();
     }
 
     fn cleanup(&self, _manifest: &ProjectManifest) {
-        error(format!(
-            "C++ builder does not currently have a cleanup step. Abort."
-        ));
+        error!("C++ builder does not currently have a cleanup step. Abort.");
     }
 }

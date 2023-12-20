@@ -1,9 +1,6 @@
 use std::path::Path;
 
-use crate::{
-    config,
-    term::{error, info},
-};
+use crate::{config, term::*};
 
 /**
  * This method only checks if the script exists in the
@@ -17,9 +14,7 @@ pub fn has_script(script_name: &str) -> bool {
     match Path::new(&path).try_exists() {
         Ok(o) => o,
         Err(_) => {
-            error(format!(
-                "Cannot check for script {path}. Assuming it is not present."
-            ));
+            error!("Cannot check for script \x1bc{path}\x1br. Assuming it is not present.");
             false
         }
     }
@@ -45,7 +40,7 @@ pub fn run_script(script_name: &str, args: Vec<String>) {
     }
 
     if has_script(script_name) {
-        info(format!("Running script {script_name}"));
+        info!("Running script \x1bc{script_name}\x1br");
         let mut invoke: String = "./scripts/".into();
         invoke.push_str(script_name);
         invoke.push_str(".sh");

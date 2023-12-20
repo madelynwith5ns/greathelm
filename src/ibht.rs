@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fs::ReadDir, path::Path};
 
-use crate::term::error;
+use crate::term::*;
 
 /**
  * Hashes all files in the src/ directory and then writes the result to the IBHT.ghd file.
@@ -17,8 +17,7 @@ pub fn write_ibht() {
     match std::fs::write("IBHT.ghd", hashtable_file) {
         Ok(_) => {}
         Err(e) => {
-            error(format!("Failed to write IBHT. Error is below:"));
-            eprintln!("{}", e);
+            print_error_obj(Some("Failed to write IBHT.".into()), Box::new(e));
         }
     }
 }
@@ -31,11 +30,11 @@ pub fn gen_hashtable() -> HashMap<String, String> {
 
     let srcdir = Path::new("src");
     if !srcdir.exists() {
-        error(format!("There is no source directory. Abort."));
+        error!("There is no source directory. Abort.");
         return hashes;
     }
     if !srcdir.is_dir() {
-        error(format!("src/ is not a directory. Abort."));
+        error!("src/ is not a directory. Abort.");
         return hashes;
     }
 
@@ -43,8 +42,8 @@ pub fn gen_hashtable() -> HashMap<String, String> {
         Ok(iter) => {
             recurse_dir(iter, &mut hashes);
         }
-        Err(_) => {
-            error(format!("Failed to read src/. Abort."));
+        Err(e) => {
+            print_error_obj(Some("Failed to read src".into()), Box::new(e));
             return hashes;
         }
     }
@@ -60,8 +59,8 @@ fn recurse_dir(dir: ReadDir, hashes: &mut HashMap<String, String>) {
                     recurse_dir(
                         match std::fs::read_dir(f.path()) {
                             Ok(dir) => dir,
-                            Err(_) => {
-                                error(format!("Failed reading source tree."));
+                            Err(e) => {
+                                print_error_obj(Some("Failed to read src".into()), Box::new(e));
                                 std::process::exit(1);
                             }
                         },
@@ -96,8 +95,7 @@ pub fn read_ibht() -> HashMap<String, String> {
     let ibht_file = match std::fs::read_to_string(ibht_path) {
         Ok(ibht) => ibht,
         Err(e) => {
-            error(format!("Failed to read IBHT. Error is below:"));
-            eprintln!("{}", e);
+            print_error_obj(Some("Failed to read IBHT.".into()), Box::new(e));
             std::process::exit(1);
         }
     };

@@ -1,8 +1,4 @@
-use crate::{
-    generator::ProjectGenerator,
-    identify::NamespacedIdentifier,
-    term::{error, info, ok},
-};
+use crate::{generator::ProjectGenerator, identify::NamespacedIdentifier, term::*};
 
 use super::Action;
 
@@ -37,7 +33,7 @@ impl Action for InitAction {
         let cdir = match std::env::current_dir() {
             Ok(dir) => dir,
             Err(_) => {
-                error(format!("Current directory is invalid."));
+                error!("Current directory is invalid.");
                 return;
             }
         };
@@ -62,16 +58,9 @@ impl Action for InitAction {
         for g in &state.generators {
             if g.get_aliases().contains(&project_type.to_lowercase()) {
                 if use_generator.is_some() {
-                    error(format!(
-                        "Generator name \"{}\" is ambiguous in your configuration.",
-                        project_type
-                    ));
-                    error(format!(
-                        "Please specify which one you would like to use on the command line"
-                    ));
-                    error(format!(
-                        "like so: --project-type=<full.namespaced:Identifier>"
-                    ));
+                    error!("Generator name \x1bc{project_type}\x1br is ambiguous in your configuration.");
+                    error!("Please specify which one you would like to use on the command line");
+                    error!("like so: \x1bc--project-type=<full.namespaced:Identifier>\x1br");
                     std::process::exit(1);
                 } else {
                     use_generator = Some(g);
@@ -83,33 +72,27 @@ impl Action for InitAction {
 
         match use_generator {
             Some(generator) => {
-                info(format!(
-                    "Initializing current directory as Greathelm project \"{}\"",
-                    project_name
-                ));
+                info!(
+                    "Initializing current directory as Greathelm project \x1bc{project_name}\x1br"
+                );
 
                 generator.generate(std::env::current_dir().unwrap());
 
                 if generator.should_make_ibht_stub() {
-                    info(format!(
-                        "Generator requested an IBHT stub. Writing IBHT stub..."
-                    ));
+                    info!("Generator requested an IBHT stub. Writing IBHT stub...");
                     match std::fs::write("IBHT.ghd", "\n") {
                         Ok(_) => {
-                            ok(format!("Blank IBHT has been written successfully."));
+                            ok!("Blank IBHT has been written successfully.");
                         }
                         Err(e) => {
-                            error(format!("Failed to write a blank IBHT. Error is below:"));
-                            eprintln!("{}", e);
+                            print_error_obj(Some("Failed to write IBHT.".into()), Box::new(e));
                         }
                     };
                 }
             }
             None => {
-                error(format!(
-                    "Could not find requested generator \"{project_type}\""
-                ));
-                error(format!("Are you missing a plugin?"));
+                error!("Could not find requested generator \x1bc{project_type}\x1br");
+                error!("Are you missing a plugin?");
             }
         }
     }

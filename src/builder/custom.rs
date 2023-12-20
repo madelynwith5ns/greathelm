@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::{manifest::ProjectManifest, script, term::error};
+use crate::{manifest::ProjectManifest, script, term::*};
 
 use super::ProjectBuilder;
 
@@ -37,17 +37,11 @@ impl ProjectBuilder for CustomBuilder {
     }
     fn build(&self, manifest: &ProjectManifest) {
         let build_dir = Path::new("build");
-        if !match build_dir.try_exists() {
-            Ok(o) => o,
-            Err(_) => {
-                error(format!("Failed to check if build directory exists. Abort."));
-                return;
-            }
-        } {
+        if !build_dir.exists() {
             match std::fs::create_dir(build_dir) {
                 Ok(_) => {}
                 Err(_) => {
-                    error(format!("Failed to create build directory. Abort."));
+                    error!("Failed to create build directory. Abort.");
                     return;
                 }
             }

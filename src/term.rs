@@ -1,7 +1,50 @@
+use std::error::Error;
+
+#[macro_export]
+macro_rules! info {
+    ($($arg:tt)*) => {
+        {
+            _info(format!($($arg)*));
+        }
+    };
+}
+#[macro_export]
+macro_rules! warning {
+    ($($arg:tt)*) => {
+        {
+            _warn(format!($($arg)*));
+        }
+    };
+}
+#[macro_export]
+macro_rules! error {
+    ($($arg:tt)*) => {
+        {
+            _error(format!($($arg)*));
+        }
+    };
+}
+#[macro_export]
+macro_rules! ok {
+    ($($arg:tt)*) => {
+        {
+            _ok(format!($($arg)*));
+        }
+    };
+}
+
+pub(crate) use error;
+pub(crate) use info;
+pub(crate) use ok;
+pub(crate) use warning;
+
 /**
  * Prints `text` to the terminal as [INFO ].
  */
-pub fn info(text: String) {
+pub fn _info(text: String) {
+    // replace shortened color codes
+    let text = text.replace("\x1bc", "\x1b[38;5;27m");
+    let text = text.replace("\x1br", "\x1b[1;0m");
     println!(
         "\x1b[38;5;240m[\x1b[38;5;27mINFO \x1b[38;5;240m] \x1b[1;0m{}",
         text
@@ -11,7 +54,10 @@ pub fn info(text: String) {
 /**
  * Prints `text` to the terminal as a [WARN ].
  */
-pub fn warn(text: String) {
+pub fn _warn(text: String) {
+    // replace shortened color codes
+    let text = text.replace("\x1bc", "\x1b[38;5;214m");
+    let text = text.replace("\x1br", "\x1b[1;0m");
     eprintln!(
         "\x1b[38;5;240m[\x1b[38;5;214mWARN \x1b[38;5;240m] \x1b[1;0m{}",
         text
@@ -21,17 +67,32 @@ pub fn warn(text: String) {
 /**
  * Prints `text` to the terminal as an [ERROR].
  */
-pub fn error(text: String) {
+pub fn _error(text: String) {
+    // replace shortened color codes
+    let text = text.replace("\x1bc", "\x1b[38;5;196m");
+    let text = text.replace("\x1br", "\x1b[1;0m");
     eprintln!(
         "\x1b[38;5;240m[\x1b[38;5;196mERROR\x1b[38;5;240m] \x1b[1;0m{}",
         text
     );
 }
 
+pub fn print_error_obj(text: Option<String>, err: Box<dyn Error>) {
+    if text.is_some() {
+        error!("{}", text.unwrap());
+    } else {
+        error!("An error occurred. The details are below.");
+    }
+    error!("{err}");
+}
+
 /**
  * Prints `text` to the terminal as [OK   ].
  */
-pub fn ok(text: String) {
+pub fn _ok(text: String) {
+    // replace shortened color codes
+    let text = text.replace("\x1bc", "\x1b[38;5;40m");
+    let text = text.replace("\x1br", "\x1b[1;0m");
     println!(
         "\x1b[38;5;240m[\x1b[38;5;40mOK   \x1b[38;5;240m] \x1b[1;0m{}",
         text

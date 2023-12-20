@@ -1,7 +1,4 @@
-use crate::{
-    builder::dependency,
-    term::{error, info, ok},
-};
+use crate::{builder::dependency, term::*};
 
 use super::Action;
 
@@ -34,36 +31,36 @@ impl Action for CheckoutAction {
     fn execute(&self, state: &crate::state::GreathelmState) {
         match state.cli_args.get(2) {
             Some(v) => {
-                info(format!("Attempting to resolve {v}"));
+                info!("Attempting to resolve {v}");
                 let (id, ver) = dependency::parse_dependency_notation(v.clone());
                 let path = dependency::resolve_dependency(id.clone(), ver);
                 match path {
                     Some(p) => {
-                        info(format!("Checking out to current directory..."));
+                        info!("Checking out to current directory...");
                         let dir = match std::env::current_dir() {
                             Ok(v) => v,
                             Err(_) => {
-                                error(format!("Could not get current directory."));
+                                error!("Could not get current directory.");
                                 std::process::exit(1);
                             }
                         };
                         match crate::util::copy_dir(&p, &dir, &vec![], false) {
                             Ok(_) => {
-                                ok(format!("Finished checking out {id}"));
+                                ok!("Finished checking out \x1bc{id}\x1br");
                             }
                             Err(e) => {
-                                error(format!("Failed to checkout."));
+                                error!("Failed to checkout.");
                                 eprintln!("{e}");
                             }
                         };
                     }
                     None => {
-                        error(format!("Could not resolve. Abort."));
+                        error!("Could not resolve. Abort.");
                     }
                 }
             }
             None => {
-                error(format!("Please provide an identifier."));
+                error!("Please provide an identifier.");
             }
         }
     }

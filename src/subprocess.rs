@@ -1,12 +1,12 @@
 use std::path::Path;
 
-use crate::term::{error, info, ok};
+use crate::term::*;
 
 /**
  * Builds the project located at `path`.
  */
 pub fn build_project(path: &Path) {
-    info(format!("Spawning `greathelm build` subprocess..."));
+    info!("Spawning \x1bcgreathelm build\x1br subprocess...");
     let status = duct::cmd!(std::env::current_exe().unwrap(), "build")
         .dir(path)
         .stderr_to_stdout()
@@ -14,9 +14,9 @@ pub fn build_project(path: &Path) {
         .unwrap()
         .status;
     if status.success() {
-        ok(format!("Build subprocess succeeded."));
+        ok!("Build subprocess succeeded.");
     } else {
-        error(format!("Build subprocess failed."));
+        error!("Build subprocess failed.");
         std::process::exit(1);
     }
 }

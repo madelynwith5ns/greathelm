@@ -1,4 +1,4 @@
-use crate::{script, term::error};
+use crate::{script, term::*};
 
 use super::Action;
 
@@ -36,7 +36,7 @@ impl Action for ScriptAction {
                 );
             }
             None => {
-                error(format!("Please provide a script name."));
+                error!("Please provide a script name.");
             }
         }
     }

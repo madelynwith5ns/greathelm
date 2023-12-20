@@ -3,7 +3,7 @@ use std::{path::PathBuf, str::FromStr};
 use crate::{
     identify::NamespacedIdentifier,
     store,
-    term::error,
+    term::*,
     version::{self, Version},
 };
 
@@ -62,9 +62,7 @@ pub fn resolve_dependency(
         }
 
         if versions.is_empty() {
-            error(format!(
-                "Item {identifier} was resolved, but there are no present versions!"
-            ));
+            error!("Item \x1bc{identifier}\x1br was resolved, but there are no present versions!");
             return None;
         } else {
             versions.sort();
@@ -75,14 +73,14 @@ pub fn resolve_dependency(
             if path.exists() {
                 return Some(path);
             } else {
-                error(format!(
-                    "Item {identifier} was resolved, but the version folder is not present?"
-                ));
+                error!(
+                    "Item \x1bc{identifier}\x1br was resolved, but the version folder is not present?"
+                );
                 return None;
             }
         }
     } else {
-        error(format!("Item {identifier} could not be resolved."));
+        error!("Item \x1bc{identifier}\x1br could not be resolved.");
         return None;
     }
 }

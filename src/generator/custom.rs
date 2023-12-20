@@ -4,7 +4,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::term::{error, ok};
+use crate::term::*;
 
 use super::ProjectGenerator;
 
@@ -38,8 +38,10 @@ impl ProjectGenerator for CustomGenerator {
         match std::fs::create_dir("src") {
             Ok(_) => {}
             Err(e) => {
-                error(format!("Failed to create project! Error is below:"));
-                eprintln!("{}", e);
+                print_error_obj(
+                    Some("Failed to create project! Error is below:".into()),
+                    Box::new(e),
+                );
                 std::process::exit(1);
             }
         }
@@ -47,8 +49,10 @@ impl ProjectGenerator for CustomGenerator {
         match std::fs::create_dir("scripts") {
             Ok(_) => {}
             Err(e) => {
-                error(format!("Failed to create project! Error is below:"));
-                eprintln!("{}", e);
+                print_error_obj(
+                    Some("Failed to create project! Error is below:".into()),
+                    Box::new(e),
+                );
                 std::process::exit(1);
             }
         }
@@ -62,8 +66,10 @@ impl ProjectGenerator for CustomGenerator {
         ) {
             Ok(_) => {}
             Err(e) => {
-                error(format!("Failed to create project! Error is below:"));
-                eprintln!("{}", e);
+                print_error_obj(
+                    Some("Failed to create project! Error is below:".into()),
+                    Box::new(e),
+                );
                 std::process::exit(1);
             }
         };
@@ -82,8 +88,10 @@ impl ProjectGenerator for CustomGenerator {
         ) {
             Ok(_) => {}
             Err(e) => {
-                error(format!("Failed to create project! Error is below:"));
-                eprintln!("{}", e);
+                print_error_obj(
+                    Some("Failed to create project! Error is below:".into()),
+                    Box::new(e),
+                );
                 std::process::exit(1);
             }
         };
@@ -98,8 +106,10 @@ impl ProjectGenerator for CustomGenerator {
         ) {
             Ok(_) => {}
             Err(e) => {
-                error(format!("Failed to create project! Error is below:"));
-                eprintln!("{}", e);
+                print_error_obj(
+                    Some("Failed to create project! Error is below:".into()),
+                    Box::new(e),
+                );
                 std::process::exit(1);
             }
         };
@@ -130,12 +140,14 @@ impl ProjectGenerator for CustomGenerator {
         ) {
             Ok(_) => {}
             Err(e) => {
-                error(format!("Failed to create project! Error is below:"));
-                eprintln!("{}", e);
+                print_error_obj(
+                    Some("Failed to create project! Error is below:".into()),
+                    Box::new(e),
+                );
                 std::process::exit(1);
             }
         };
 
-        ok(format!("Succeeded in generating project from template."));
+        ok!("Succeeded in generating project from template.");
     }
 }

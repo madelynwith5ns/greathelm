@@ -1,6 +1,6 @@
 use std::sync::{mpsc, Arc, Mutex};
 
-use crate::term::error;
+use crate::term::*;
 
 type Job = Box<dyn FnOnce() + Send + 'static>;
 
@@ -39,12 +39,12 @@ impl ParallelBuild {
                     Ok(r) => match r.recv() {
                         Ok(v) => v,
                         Err(_) => {
-                            error("A parallel build worker failed to receive jobs. The build WILL fail past this point. Abort.".into());
+                            error!("A parallel build worker failed to receive jobs. The build WILL fail past this point. Abort.");
                             panic!("Failed to receive jobs.");
                         }
                     },
                     Err(_) => {
-                        error("A parallel build worker failed to receive jobs. The build WILL fail past this point. Abort.".into());
+                        error!("A parallel build worker failed to receive jobs. The build WILL fail past this point. Abort.");
                         panic!("Failed to receive jobs.");
                     }
                 };

@@ -8,7 +8,7 @@ use std::{
     str::FromStr,
 };
 
-use crate::{module::Module, term::error};
+use crate::{module::Module, term::*};
 
 /**
  * Struct for Project Manifests. This is usually a combined manifest of
@@ -116,8 +116,10 @@ impl ProjectManifest {
         let raw_file = match std::fs::read_to_string(path) {
             Ok(data) => data,
             Err(e) => {
-                error(format!("Failed to read Project.ghm. Error is below:"));
-                eprintln!("{}", e);
+                print_error_obj(
+                    Some("Failed to read \x1bcProject.ghm\x1br.".into()),
+                    Box::new(e),
+                );
                 std::process::exit(1);
             }
         };

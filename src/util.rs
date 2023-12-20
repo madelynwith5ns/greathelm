@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::term::warn;
+use crate::term::*;
 
 /**
  * Copies a directory recursively ignoring all path names ending with strings in `ignore`
@@ -43,8 +43,7 @@ pub fn copy_dir(
                 Ok(_) => {}
                 Err(e) => {
                     if !silent_fail {
-                        warn(format!("Failed to copy \"{}\":", entry.path().display()));
-                        warn(format!("{e}"));
+                        print_error_obj(Some("Failed to copy a file.".into()), Box::new(e));
                     }
                 }
             };

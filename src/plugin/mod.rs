@@ -1,7 +1,7 @@
 use std::{path::PathBuf, str::FromStr};
 
 use crate::{
-    action::Action, builder::ProjectBuilder, config, generator::ProjectGenerator, term::error,
+    action::Action, builder::ProjectBuilder, config, generator::ProjectGenerator, term::*,
 };
 
 // this is just here to keep things loaded because libloading automatically
@@ -68,10 +68,10 @@ pub fn load_plugins() -> Vec<GreathelmPlugin> {
             Ok(f) => unsafe {
                 let library = libloading::Library::new(format!("{}", f.path().display()));
                 if library.is_err() {
-                    error(format!(
+                    error!(
                         "Failed to load plugin \"{}\". Could not load library.",
                         f.path().display()
-                    ));
+                    );
                     continue;
                 }
                 let library = library.unwrap();
@@ -79,10 +79,10 @@ pub fn load_plugins() -> Vec<GreathelmPlugin> {
                     match library.get(b"GHPI_PluginInit") {
                         Ok(s) => s,
                         Err(_) => {
-                            error(format!(
+                            error!(
                                 "Loaded library \"{}\" is not a Greathelm plugin or it is invalid.",
                                 f.path().display()
-                            ));
+                            );
                             continue;
                         }
                     };

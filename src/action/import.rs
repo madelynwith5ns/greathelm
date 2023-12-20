@@ -1,11 +1,6 @@
 use std::{path::PathBuf, str::FromStr};
 
-use crate::{
-    identify::NamespacedIdentifier,
-    script, store,
-    term::{error, info, ok},
-    version::Version,
-};
+use crate::{identify::NamespacedIdentifier, script, store, term::*, version::Version};
 
 use super::Action;
 
@@ -43,27 +38,21 @@ impl Action for ImportAction {
             .manifest
             .get_string_property("Project-Namespace", "unnamespaced");
         if namespace == "unnamespaced" {
-            error(format!(
-                "Project does not have a Project-Namespace. Cannot be imported."
-            ));
+            error!("Project does not have a Project-Namespace. Cannot be imported.");
             return;
         }
         let name = state
             .manifest
             .get_string_property("Project-Name", "unnamed");
         if name == "unnamed" {
-            error(format!(
-                "Project does not have a Project-Name. Cannot be imported."
-            ));
+            error!("Project does not have a Project-Name. Cannot be imported.");
             return;
         }
         let version = state
             .manifest
             .get_string_property("Project-Version", "unversioned");
         if version == "unversioned" {
-            error(format!(
-                "Project does not have a Project-Version. Cannot be imported"
-            ));
+            error!("Project does not have a Project-Version. Cannot be imported");
         }
         let version = Version::parse(version);
         let identifier = NamespacedIdentifier {
@@ -75,16 +64,16 @@ impl Action for ImportAction {
 
         script::run_script("pre-import", vec![format!("{}", path.display())]);
 
-        info(format!("Importing project to {}", path.display()));
+        info!("Importing project to \x1bc{}\x1br", path.display());
         if path.exists() {
-            info(format!("Clearing old copy..."));
+            info!("Clearing old copy...");
             match std::fs::remove_dir_all(&path) {
                 Ok(_) => {}
                 Err(e) => {
-                    error(format!(
-                        "Failed to remove old copy of this project in the store."
-                    ));
-                    error(format!("{e}"));
+                    print_error_obj(
+                        Some("Failed to remove old copy of this project in the store.".into()),
+                        Box::new(e),
+                    );
                     return;
                 }
             };
@@ -92,7 +81,7 @@ impl Action for ImportAction {
         match std::fs::create_dir_all(&path) {
             Ok(_) => {}
             Err(_) => {
-                error(format!("Failed to create path in store."));
+                error!("Failed to create path in store.");
                 return;
             }
         };
@@ -100,7 +89,7 @@ impl Action for ImportAction {
         let cd = match std::env::current_dir() {
             Ok(v) => v,
             Err(_) => {
-                error(format!("Failed to get current directory."));
+                error!("Failed to get current directory.");
                 return;
             }
         };
@@ -118,13 +107,10 @@ impl Action for ImportAction {
 
         match crate::util::copy_dir(&cd, &path, &ignore, false) {
             Ok(_) => {
-                ok(format!(
-                    "Successfully imported project \"{identifier}@{version}\""
-                ));
+                ok!("Successfully imported project \x1bc{identifier}@{version}\x1br");
             }
             Err(e) => {
-                error(format!("Failed to import project."));
-                eprintln!("{}", e);
+                print_error_obj(Some("Failed to import project.".into()), Box::new(e));
             }
         };
     }

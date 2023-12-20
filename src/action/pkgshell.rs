@@ -1,7 +1,4 @@
-use crate::{
-    builder::dependency,
-    term::{error, info},
-};
+use crate::{builder::dependency, term::*};
 
 use super::Action;
 
@@ -34,7 +31,7 @@ impl Action for PackageShell {
     fn execute(&self, state: &crate::state::GreathelmState) {
         match state.cli_args.get(2) {
             Some(v) => {
-                info(format!("Attempting to resolve {v}"));
+                info!("Attempting to resolve {v}");
                 let (id, ver) = dependency::parse_dependency_notation(v.clone());
                 let path = dependency::resolve_dependency(id.clone(), ver);
                 match path {
@@ -42,12 +39,12 @@ impl Action for PackageShell {
                         duct::cmd!("sh").stderr_to_stdout().dir(p).run().ok();
                     }
                     None => {
-                        error(format!("Could not resolve. Abort."));
+                        error!("Could not resolve. Abort.");
                     }
                 }
             }
             None => {
-                error(format!("Please provide an identifier."));
+                error!("Please provide an identifier.");
             }
         }
     }

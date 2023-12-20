@@ -1,6 +1,6 @@
 use std::{path::PathBuf, str::FromStr};
 
-use crate::{store, term::error};
+use crate::{store, term::*};
 
 /**
  * Gets the base config directory.
@@ -74,16 +74,21 @@ pub fn ensure_config_dirs() {
 pub fn ensure_dir(path: PathBuf) {
     if !match path.try_exists() {
         Ok(ex) => ex,
-        Err(_) => {
-            error(format!("Could not ensure config directories. Abort."));
+        Err(e) => {
+            print_error_obj(
+                Some("Could not ensure config directories. Abort.".into()),
+                Box::new(e),
+            );
             std::process::exit(1);
         }
     } {
         match std::fs::create_dir_all(path) {
             Ok(_) => {}
             Err(e) => {
-                error(format!("Could not ensure config directories. Abort."));
-                eprintln!("{}", e);
+                print_error_obj(
+                    Some("Could not ensure config directories. Abort.".into()),
+                    Box::new(e),
+                );
                 std::process::exit(1);
             }
         }

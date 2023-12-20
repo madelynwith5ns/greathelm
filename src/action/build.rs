@@ -1,11 +1,7 @@
+use crate::term::*;
 use std::path::Path;
 
-use crate::{
-    builder::ProjectBuilder,
-    identify::NamespacedIdentifier,
-    script,
-    term::{error, info},
-};
+use crate::{builder::ProjectBuilder, identify::NamespacedIdentifier, script};
 
 use super::Action;
 
@@ -43,14 +39,13 @@ impl Action for BuildAction {
             .manifest
             .get_string_property("Project-Type", "Unknown");
 
-        info(format!("Building modules..."));
+        info!("Building modules...");
         script::run_script("pre-modules", vec![]);
         for module in &state.manifest.get_modules() {
             module.build();
         }
         script::run_script("post-modules", vec![]);
-
-        info(format!("Building project \"{project_name}\""));
+        info!("Building project \x1bc{project_name}\x1br");
 
         // find the builder, fail out if ambiguous.
         let mut use_builder: Option<&Box<dyn ProjectBuilder>> = None;
@@ -58,17 +53,12 @@ impl Action for BuildAction {
         for b in &state.builders {
             if b.get_aliases().contains(&project_type.to_lowercase()) {
                 if use_builder.is_some() {
-                    error(format!(
-                        "Builder name \"{}\" is ambiguous in your configuration.",
-                        project_type
-                    ));
-                    error(format!(
-                        "Please specify which one you would like to use either on the command line"
-                    ));
-                    error(format!(
-                        "like so: --Project-Type=<full.namespaced:Identifier>"
-                    ));
-                    error(format!("or in your project manifest."));
+                    error!(
+                        "Builder name \x1bc{project_type}\x1br is ambiguous in your configuration."
+                    );
+                    error!("Please specify which one you would like to use either on the command line,");
+                    error!("like so \x1bc--Project-Type=<full.namespaced:Identifier>\x1br");
+                    error!("or in your project manifest.");
                     std::process::exit(1);
                 } else {
                     use_builder = Some(b);
@@ -87,25 +77,23 @@ impl Action for BuildAction {
                     match std::fs::create_dir(path) {
                         Ok(_) => {}
                         Err(_) => {
-                            error(format!("Failed to create build directory. Abort."));
+                            error!("Failed to create build directory. Abort.");
                             std::process::exit(1);
                         }
                     };
                 }
 
-                info(format!("Validating..."));
+                info!("Validating...");
                 if builder.validate(&state.manifest) {
-                    info(format!("Building..."));
+                    info!("Building...");
                     builder.build(&state.manifest);
                 } else {
-                    error(format!("Validating project failed."));
+                    info!("Validating project failed.");
                 }
             }
             None => {
-                error(format!(
-                    "Could not find the required builder \"{project_type}\"."
-                ));
-                error(format!("Are you missing a plugin?"));
+                info!("Could not find the required builder \"{project_type}\".");
+                info!("Are you missing a plugin?");
                 std::process::exit(1);
             }
         }
