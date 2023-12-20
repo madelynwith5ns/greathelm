@@ -38,6 +38,8 @@ pub(crate) use info;
 pub(crate) use ok;
 pub(crate) use warning;
 
+use crate::subprocess;
+
 /**
  * Prints `text` to the terminal as [INFO ].
  */
@@ -45,8 +47,14 @@ pub fn _info(text: String) {
     // replace shortened color codes
     let text = text.replace("\x1bc", "\x1b[38;5;27m");
     let text = text.replace("\x1br", "\x1b[1;0m");
+
+    let mut embed_pfx = String::from("\x1b[38;5;240m");
+    for _ in 0..subprocess::get_embedding_layers() {
+        embed_pfx.push_str("|--> ");
+    }
+
     println!(
-        "\x1b[38;5;240m[\x1b[38;5;27mINFO \x1b[38;5;240m] \x1b[1;0m{}",
+        "{embed_pfx}\x1b[38;5;240m[\x1b[38;5;27mINFO \x1b[38;5;240m] \x1b[1;0m{}",
         text
     );
 }
@@ -58,8 +66,14 @@ pub fn _warn(text: String) {
     // replace shortened color codes
     let text = text.replace("\x1bc", "\x1b[38;5;214m");
     let text = text.replace("\x1br", "\x1b[1;0m");
+
+    let mut embed_pfx = String::from("\x1b[38;5;240m");
+    for _ in 0..subprocess::get_embedding_layers() {
+        embed_pfx.push_str("|--> ");
+    }
+
     eprintln!(
-        "\x1b[38;5;240m[\x1b[38;5;214mWARN \x1b[38;5;240m] \x1b[1;0m{}",
+        "{embed_pfx}\x1b[38;5;240m[\x1b[38;5;214mWARN \x1b[38;5;240m] \x1b[1;0m{}",
         text
     );
 }
@@ -71,8 +85,14 @@ pub fn _error(text: String) {
     // replace shortened color codes
     let text = text.replace("\x1bc", "\x1b[38;5;196m");
     let text = text.replace("\x1br", "\x1b[1;0m");
+
+    let mut embed_pfx = String::from("\x1b[38;5;240m");
+    for _ in 0..subprocess::get_embedding_layers() {
+        embed_pfx.push_str("|--> ");
+    }
+
     eprintln!(
-        "\x1b[38;5;240m[\x1b[38;5;196mERROR\x1b[38;5;240m] \x1b[1;0m{}",
+        "{embed_pfx}\x1b[38;5;240m[\x1b[38;5;196mERROR\x1b[38;5;240m] \x1b[1;0m{}",
         text
     );
 }
@@ -93,8 +113,14 @@ pub fn _ok(text: String) {
     // replace shortened color codes
     let text = text.replace("\x1bc", "\x1b[38;5;40m");
     let text = text.replace("\x1br", "\x1b[1;0m");
+
+    let mut embed_pfx = String::from("\x1b[38;5;240m");
+    for _ in 0..subprocess::get_embedding_layers() {
+        embed_pfx.push_str("|--> ");
+    }
+
     println!(
-        "\x1b[38;5;240m[\x1b[38;5;40mOK   \x1b[38;5;240m] \x1b[1;0m{}",
+        "{embed_pfx}\x1b[38;5;240m[\x1b[38;5;40mOK   \x1b[38;5;240m] \x1b[1;0m{}",
         text
     );
 }
