@@ -26,14 +26,15 @@ impl Action for ImportAction {
         vec!["import".into()]
     }
 
-    fn get_identifier(&self) -> crate::identify::NamespacedIdentifier {
-        crate::identify::NamespacedIdentifier {
+    fn get_identifier(&self) -> NamespacedIdentifier {
+        NamespacedIdentifier {
             namespace: "io.github.madelynwith5ns.greathelm".into(),
             identifier: "Import".into(),
         }
     }
 
     fn execute(&self, state: &crate::state::GreathelmState) {
+        // get all of our settings
         let namespace = state
             .manifest
             .get_string_property("Project-Namespace", "unnamespaced");
@@ -54,18 +55,24 @@ impl Action for ImportAction {
         if version == "unversioned" {
             error!("Project does not have a Project-Version. Cannot be imported");
         }
+        // make the version and identifier structs
         let version = Version::parse(version);
         let identifier = NamespacedIdentifier {
             namespace,
             identifier: name,
         };
+
+        // get the final path
         let path = store::get_path(&identifier);
         let path = PathBuf::from_str(&format!("{}/@{version}", path.display())).unwrap();
 
+        // people run scripts or something i dont know
         script::run_script("pre-import", vec![format!("{}", path.display())]);
 
+        // import time
         info!("Importing project to \x1bc{}\x1br", path.display());
         if path.exists() {
+            // delete the old stuff
             info!("Clearing old copy...");
             match std::fs::remove_dir_all(&path) {
                 Ok(_) => {}
@@ -78,6 +85,8 @@ impl Action for ImportAction {
                 }
             };
         }
+
+        // create the destination
         match std::fs::create_dir_all(&path) {
             Ok(_) => {}
             Err(_) => {
@@ -86,6 +95,7 @@ impl Action for ImportAction {
             }
         };
 
+        // current dir
         let cd = match std::env::current_dir() {
             Ok(v) => v,
             Err(_) => {
@@ -105,6 +115,7 @@ impl Action for ImportAction {
             None => {}
         }
 
+        // finally actually import the stuff
         match crate::util::copy_dir(&cd, &path, &ignore, false) {
             Ok(_) => {
                 ok!("Successfully imported project \x1bc{identifier}@{version}\x1br");

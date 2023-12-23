@@ -24,34 +24,44 @@ impl Action for BuildAction {
     fn get_aliases(&self) -> Vec<String> {
         vec!["build".into()]
     }
-    fn get_identifier(&self) -> crate::identify::NamespacedIdentifier {
-        crate::identify::NamespacedIdentifier {
+    fn get_identifier(&self) -> NamespacedIdentifier {
+        NamespacedIdentifier {
             namespace: "io.github.madelynwith5ns.greathelm".into(),
             identifier: "Build".into(),
         }
     }
 
     fn execute(&self, state: &crate::state::GreathelmState) {
+        // make sure we have working settings
         let project_name = state
             .manifest
-            .get_string_property("Project-Name", "UnnamedProject");
+            .get_string_property("Project-Name", "Unnamed Project");
         let project_type = state
             .manifest
             .get_string_property("Project-Type", "Unknown");
+        // we cant build a project if it doesnt have a Project-Type.
+        if project_type == "Unknown" {
+            error!("This project does not have a set \x1bcProject-Type\x1br property.");
+            std::process::exit(1);
+        }
 
+        // modules time
         info!("Building modules...");
         script::run_script("pre-modules", vec![]);
         for module in &state.manifest.get_modules() {
             module.build();
         }
         script::run_script("post-modules", vec![]);
+
         info!("Building project \x1bc{project_name}\x1br");
 
         // find the builder, fail out if ambiguous.
         let mut use_builder: Option<&Box<dyn ProjectBuilder>> = None;
         let namespaced = NamespacedIdentifier::parse_text(&project_type);
         for b in &state.builders {
+            // check short names.
             if b.get_aliases().contains(&project_type.to_lowercase()) {
+                // fail out if we already have a builder found
                 if use_builder.is_some() {
                     error!(
                         "Builder name \x1bc{project_type}\x1br is ambiguous in your configuration."
@@ -63,8 +73,16 @@ impl Action for BuildAction {
                 } else {
                     use_builder = Some(b);
                 }
-            } else if namespaced.namespace != "unnamespaced" && b.get_identifier() == namespaced {
-                use_builder = Some(b);
+            } else {
+                // check NamespacedIdentifier.
+                match namespaced {
+                    Some(ref n) => {
+                        if n == &b.get_identifier() {
+                            use_builder = Some(b);
+                        }
+                    }
+                    None => {} // if we dont have a NamespacedIdentifier we don't care.
+                }
             }
         }
 
@@ -74,17 +92,15 @@ impl Action for BuildAction {
                 // create build dir if absent
                 let path = Path::new("build");
                 if !path.exists() {
-                    match std::fs::create_dir(path) {
-                        Ok(_) => {}
-                        Err(_) => {
-                            error!("Failed to create build directory. Abort.");
-                            std::process::exit(1);
-                        }
-                    };
+                    if std::fs::create_dir(path).is_err() {
+                        error!("Failed to create build directory. Abort.");
+                        std::process::exit(1);
+                    }
                 }
 
                 info!("Validating...");
                 if builder.validate(&state.manifest) {
+                    // run the validator
                     info!("Building...");
                     builder.build(&state.manifest);
                 } else {
@@ -92,7 +108,7 @@ impl Action for BuildAction {
                 }
             }
             None => {
-                info!("Could not find the required builder \"{project_type}\".");
+                info!("Could not find the required builder \x1bc{project_type}\x1br.");
                 info!("Are you missing a plugin?");
                 std::process::exit(1);
             }

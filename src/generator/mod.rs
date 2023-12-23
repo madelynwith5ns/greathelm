@@ -5,6 +5,7 @@ use crate::identify::NamespacedIdentifier;
 pub mod c;
 pub mod cpp;
 pub mod custom;
+pub mod helper;
 
 /**
  * Trait for all project generators.

@@ -146,7 +146,13 @@ fn main() {
         }
     }
     let mut use_action: Option<&Box<dyn Action>> = None;
-    let namespaced = NamespacedIdentifier::parse_text(&action);
+    let namespaced = match NamespacedIdentifier::parse_text(&action) {
+        Some(v) => v,
+        None => NamespacedIdentifier {
+            namespace: "?".into(),
+            identifier: action.clone(),
+        },
+    };
     for a in &state.actions {
         if a.get_aliases().contains(&action.to_lowercase()) {
             if use_action.is_some() {

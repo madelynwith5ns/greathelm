@@ -17,19 +17,19 @@ pub struct NamespacedIdentifier {
 impl NamespacedIdentifier {
     /**
      * Parses a NamespacedIdentifier back from a text form.
+     * Will return Some if there the identifier is valid format
+     * (i.e. `com.example.project:Package`) and None if it is not
+     * a valid format. (i.e. `Package`).
      */
-    pub fn parse_text(text: &String) -> Self {
+    pub fn parse_text(text: &String) -> Option<Self> {
         if text.contains(":") {
             let (namespace, identifier) = text.split_once(":").unwrap();
-            return Self {
+            return Some(Self {
                 namespace: namespace.into(),
                 identifier: identifier.into(),
-            };
+            });
         } else {
-            return Self {
-                namespace: "unnamespaced".into(),
-                identifier: text.clone(),
-            };
+            return None;
         }
     }
 }

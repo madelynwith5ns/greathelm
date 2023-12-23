@@ -15,11 +15,26 @@ pub fn parse_dependency_notation(notation: String) -> (NamespacedIdentifier, Opt
     if notation.contains("@") {
         let spl = notation.split_once("@").unwrap();
         return (
-            NamespacedIdentifier::parse_text(&spl.0.into()),
+            match NamespacedIdentifier::parse_text(&spl.0.into()) {
+                Some(v) => v,
+                None => {
+                    error!("Failed to parse identifier.");
+                    std::process::exit(1);
+                }
+            },
             Some(Version::parse(spl.1.into())),
         );
     } else {
-        return (NamespacedIdentifier::parse_text(&notation), None);
+        return (
+            match NamespacedIdentifier::parse_text(&notation) {
+                Some(v) => v,
+                None => {
+                    error!("Failed to parse identifier.");
+                    std::process::exit(1);
+                }
+            },
+            None,
+        );
     }
 }
 

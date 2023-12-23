@@ -28,27 +28,33 @@ impl Action for RemoveAction {
     }
 
     fn execute(&self, state: &crate::state::GreathelmState) {
-        match state.cli_args.get(2) {
-            Some(v) => {
-                info!("Attempting to resolve \x1bc{v}\x1br");
-                let id = NamespacedIdentifier::parse_text(v);
-                let path = store::get_path(&id);
-                if path.exists() {
-                    match std::fs::remove_dir_all(path) {
-                        Ok(_) => {
-                            ok!("Succeeded in removing from store.");
-                        }
-                        Err(_) => {
-                            error!("Failed to remove from store.");
-                        }
-                    };
-                } else {
-                    error!("{id} is not in store.");
-                }
-            }
+        let identifier = match state.cli_args.get(2) {
+            Some(v) => v,
             None => {
                 error!("Please provide an identifier.");
+                std::process::exit(1);
             }
+        };
+        info!("Attempting to resolve \x1bc{identifier}\x1br");
+        let id = match NamespacedIdentifier::parse_text(identifier) {
+            Some(v) => v,
+            None => {
+                error!("Could not resolve \x1bc{identifier}\x1br");
+                std::process::exit(1);
+            }
+        };
+        let path = store::get_path(&id);
+        if path.exists() {
+            match std::fs::remove_dir_all(path) {
+                Ok(_) => {
+                    ok!("Succeeded in removing from store.");
+                }
+                Err(_) => {
+                    error!("Failed to remove from store.");
+                }
+            };
+        } else {
+            error!("{identifier} is not in store.");
         }
     }
 }

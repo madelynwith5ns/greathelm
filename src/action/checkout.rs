@@ -1,4 +1,4 @@
-use crate::{builder::dependency, term::*};
+use crate::{builder::dependency, identify::NamespacedIdentifier, term::*};
 
 use super::Action;
 
@@ -21,47 +21,50 @@ impl Action for CheckoutAction {
     fn get_aliases(&self) -> Vec<String> {
         vec!["checkout".into()]
     }
-    fn get_identifier(&self) -> crate::identify::NamespacedIdentifier {
-        crate::identify::NamespacedIdentifier {
+    fn get_identifier(&self) -> NamespacedIdentifier {
+        NamespacedIdentifier {
             namespace: "io.github.madelynwith5ns.greathelm".into(),
             identifier: "Checkout".into(),
         }
     }
 
     fn execute(&self, state: &crate::state::GreathelmState) {
-        match state.cli_args.get(2) {
-            Some(v) => {
-                info!("Attempting to resolve {v}");
-                let (id, ver) = dependency::parse_dependency_notation(v.clone());
-                let path = dependency::resolve_dependency(id.clone(), ver);
-                match path {
-                    Some(p) => {
-                        info!("Checking out to current directory...");
-                        let dir = match std::env::current_dir() {
-                            Ok(v) => v,
-                            Err(_) => {
-                                error!("Could not get current directory.");
-                                std::process::exit(1);
-                            }
-                        };
-                        match crate::util::copy_dir(&p, &dir, &vec![], false) {
-                            Ok(_) => {
-                                ok!("Finished checking out \x1bc{id}\x1br");
-                            }
-                            Err(e) => {
-                                error!("Failed to checkout.");
-                                eprintln!("{e}");
-                            }
-                        };
-                    }
-                    None => {
-                        error!("Could not resolve. Abort.");
-                    }
-                }
-            }
+        let package = match state.cli_args.get(2) {
+            Some(v) => v,
             None => {
-                error!("Please provide an identifier.");
+                error!("Please provide a package.");
+                std::process::exit(1);
             }
-        }
+        };
+        // resolve the package
+        info!("Attempting to resolve {package}");
+        let (id, ver) = dependency::parse_dependency_notation(package.clone());
+        let path = dependency::resolve_dependency(id.clone(), ver);
+        let path = match path {
+            Some(p) => p,
+            None => {
+                error!("Could not resolve. Abort.");
+                std::process::exit(1);
+            }
+        };
+        info!("Checking out to current directory...");
+        // current directory
+        let dir = match std::env::current_dir() {
+            Ok(v) => v,
+            Err(_) => {
+                error!("Could not get current directory.");
+                std::process::exit(1);
+            }
+        };
+        // copy the things
+        match crate::util::copy_dir(&path, &dir, &vec![], false) {
+            Ok(_) => {
+                ok!("Finished checking out \x1bc{id}\x1br");
+            }
+            Err(e) => {
+                error!("Failed to checkout.");
+                eprintln!("{e}");
+            }
+        };
     }
 }

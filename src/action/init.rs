@@ -22,14 +22,15 @@ impl Action for InitAction {
         vec!["init".into()]
     }
 
-    fn get_identifier(&self) -> crate::identify::NamespacedIdentifier {
-        crate::identify::NamespacedIdentifier {
+    fn get_identifier(&self) -> NamespacedIdentifier {
+        NamespacedIdentifier {
             namespace: "io.github.madelynwith5ns.greathelm".into(),
             identifier: "Initialize".into(),
         }
     }
 
     fn execute(&self, state: &crate::state::GreathelmState) {
+        // cwd
         let cdir = match std::env::current_dir() {
             Ok(dir) => dir,
             Err(_) => {
@@ -38,6 +39,9 @@ impl Action for InitAction {
             }
         };
 
+        // project name, why does this default to "current-dir" if we cant get the current
+        // directory? i don't remember but I'm just gonna roll with it.
+        // fuck it, we ball.
         let project_name: String = state.manifest.get_string_property(
             "project-name",
             match cdir.file_name() {
@@ -49,6 +53,7 @@ impl Action for InitAction {
             },
         );
 
+        // I *do* remember why this defaults to Custom if not set. Scripts are cool.
         let project_type = state
             .manifest
             .get_string_property("project-type", "io.github.madelynwith5ns.greathelm:Custom");
@@ -65,35 +70,40 @@ impl Action for InitAction {
                 } else {
                     use_generator = Some(g);
                 }
-            } else if namespaced.namespace != "unnamespaced" && g.get_identifier() == namespaced {
-                use_generator = Some(g);
+            } else {
+                match namespaced {
+                    Some(ref n) => {
+                        if n == &g.get_identifier() {
+                            use_generator = Some(g);
+                        }
+                    }
+                    None => {}
+                }
             }
         }
 
-        match use_generator {
-            Some(generator) => {
-                info!(
-                    "Initializing current directory as Greathelm project \x1bc{project_name}\x1br"
-                );
-
-                generator.generate(std::env::current_dir().unwrap());
-
-                if generator.should_make_ibht_stub() {
-                    info!("Generator requested an IBHT stub. Writing IBHT stub...");
-                    match std::fs::write("IBHT.ghd", "\n") {
-                        Ok(_) => {
-                            ok!("Blank IBHT has been written successfully.");
-                        }
-                        Err(e) => {
-                            print_error_obj(Some("Failed to write IBHT.".into()), Box::new(e));
-                        }
-                    };
-                }
-            }
+        let generator = match use_generator {
+            Some(generator) => generator,
             None => {
                 error!("Could not find requested generator \x1bc{project_type}\x1br");
                 error!("Are you missing a plugin?");
+                std::process::exit(1);
             }
+        };
+        info!("Initializing current directory as Greathelm project \x1bc{project_name}\x1br");
+
+        generator.generate(std::env::current_dir().unwrap());
+
+        if generator.should_make_ibht_stub() {
+            info!("Generator requested an IBHT stub. Writing IBHT stub...");
+            match std::fs::write("IBHT.ghd", "\n") {
+                Ok(_) => {
+                    ok!("Blank IBHT has been written successfully.");
+                }
+                Err(e) => {
+                    print_error_obj(Some("Failed to write IBHT.".into()), Box::new(e));
+                }
+            };
         }
     }
 }
