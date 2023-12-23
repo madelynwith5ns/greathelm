@@ -29,6 +29,10 @@ impl Action for PackageShell {
     }
 
     fn execute(&self, state: &crate::state::GreathelmState) {
+        let ps1 = state
+            .manifest
+            .get_string_property("PackageShellPS1", "[pkgshell] ");
+
         match state.cli_args.get(2) {
             Some(v) => {
                 info!("Attempting to resolve {v}");
@@ -36,7 +40,12 @@ impl Action for PackageShell {
                 let path = dependency::resolve_dependency(id.clone(), ver);
                 match path {
                     Some(p) => {
-                        duct::cmd!("sh").stderr_to_stdout().dir(p).run().ok();
+                        duct::cmd!("sh")
+                            .stderr_to_stdout()
+                            .dir(p)
+                            .env("PS1", ps1)
+                            .run()
+                            .ok();
                     }
                     None => {
                         error!("Could not resolve. Abort.");

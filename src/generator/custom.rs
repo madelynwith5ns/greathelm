@@ -37,9 +37,18 @@ impl ProjectGenerator for CustomGenerator {
     fn generate(&self, cwd: PathBuf) {
         super::helper::create_directory("src");
         super::helper::create_directory("scripts");
-        super::helper::create_file("scripts/prebuild.sh", "#!/usr/bin/bash\necho !! prebuild.sh has not been written yet !!\n");
-        super::helper::create_file("scripts/build.sh", "#!/usr/bin/bash\necho !! build.sh has not been written yet !!\n");
-        super::helper::create_file("scripts/postbuild.sh", "#!/usr/bin/bash\necho !! postbuild.sh has not been written yet !!\n");
+        super::helper::create_file(
+            "scripts/prebuild.sh",
+            "#!/usr/bin/bash\necho !! prebuild.sh has not been written yet !!\n",
+        );
+        super::helper::create_file(
+            "scripts/build.sh",
+            "#!/usr/bin/bash\necho !! build.sh has not been written yet !!\n",
+        );
+        super::helper::create_file(
+            "scripts/postbuild.sh",
+            "#!/usr/bin/bash\necho !! postbuild.sh has not been written yet !!\n",
+        );
 
         // set permissions on UNIX systems.
         #[cfg(target_family = "unix")]
@@ -47,21 +56,24 @@ impl ProjectGenerator for CustomGenerator {
             std::fs::set_permissions(
                 Path::new("scripts/prebuild.sh"),
                 Permissions::from_mode(0o777),
-                )
+            )
+            .ok();
+            std::fs::set_permissions(Path::new("scripts/build.sh"), Permissions::from_mode(0o777))
                 .ok();
-            std::fs::set_permissions(Path::new("scripts/build.sh"), Permissions::from_mode(0o777)).ok();
             std::fs::set_permissions(
                 Path::new("scripts/postbuild.sh"),
                 Permissions::from_mode(0o777),
-                )
-                .ok();
+            )
+            .ok();
         }
 
         let project_name = match cwd.file_name() {
             Some(s) => s.to_string_lossy().to_string(),
             None => "example".into(),
         };
-        super::helper::create_file("Project.ghm", format!(
+        super::helper::create_file(
+            "Project.ghm",
+            format!(
                 "# Greathelm Project Manifest\n\
                 Project-Name={project_name}\n\
                 Project-Namespace=com.example\n\
@@ -72,7 +84,9 @@ impl ProjectGenerator for CustomGenerator {
                 \n\
                 Greathelm-Version={}\n",
                 env!("CARGO_PKG_VERSION")
-                ).as_str());
+            )
+            .as_str(),
+        );
 
         ok!("Succeeded in generating project from template.");
     }
