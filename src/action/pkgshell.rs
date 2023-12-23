@@ -37,6 +37,7 @@ impl Action for PackageShell {
             Some(v) => {
                 info!("Attempting to resolve {v}");
                 let (id, ver) = dependency::parse_dependency_notation(v.clone());
+
                 let path = dependency::resolve_dependency(id.clone(), ver);
                 match path {
                     Some(p) => {
@@ -44,6 +45,8 @@ impl Action for PackageShell {
                             .stderr_to_stdout()
                             .dir(p)
                             .env("PS1", ps1)
+                            .env("GH_PKGSHELL_NAMESPACE", id.namespace)
+                            .env("GH_PKGSHELL_IDENTIFIER", id.identifier)
                             .run()
                             .ok();
                     }
