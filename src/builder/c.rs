@@ -59,8 +59,10 @@ impl ProjectBuilder for CBuilder {
         let mut emit = manifest.get_string_property("Emit", "binary");
         if emit == "binary" || emit == "executable" {
             info!("Emitting an \x1bcExecutable Binary\x1br");
+            emit = "binary".into();
         } else if emit == "shared" || emit == "dylib" {
             info!("Emitting a \x1bcDynamic Library\x1br");
+            emit = "dylib".into();
         } else {
             warning!("Unrecognized EMIT. Defaulting to binary.");
             emit = "binary".into();
@@ -279,7 +281,7 @@ impl ProjectBuilder for CBuilder {
         let mut prefix = "";
         let mut suffix = "";
 
-        if emit == "shared" || emit == "dylib" {
+        if emit == "dylib" {
             prefix = "lib";
             suffix = ".so";
         }
@@ -303,7 +305,7 @@ impl ProjectBuilder for CBuilder {
                 .stderr(std::process::Stdio::piped());
 
             // dylibs
-            if emit == "shared" || emit == "dylib" {
+            if emit == "dylib" {
                 ld_incantation.arg("-shared");
             }
 
