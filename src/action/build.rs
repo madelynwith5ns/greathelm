@@ -6,7 +6,7 @@ use crate::{builder::ProjectBuilder, identify::NamespacedIdentifier, script};
 use super::Action;
 
 /**
- * Built-in action (io.github.madelynwith5ns.greathelm:Build) for building a project.
+ * Built-in action (io.github.greathelm.greathelm:Build) for building a project.
  * This is where modules are built.
  * Calls validate() and then build() if that succeeds.
  */
@@ -26,7 +26,7 @@ impl Action for BuildAction {
     }
     fn get_identifier(&self) -> NamespacedIdentifier {
         NamespacedIdentifier {
-            namespace: "io.github.madelynwith5ns.greathelm".into(),
+            namespace: "io.github.greathelm.greathelm".into(),
             identifier: "Build".into(),
         }
     }

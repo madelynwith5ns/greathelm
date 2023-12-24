@@ -3,7 +3,7 @@ use crate::{generator::ProjectGenerator, identify::NamespacedIdentifier, term::*
 use super::Action;
 
 /**
- * Built-in (io.github.madelynwith5ns.greathelm:Initialize) action for creating a project in the
+ * Built-in (io.github.greathelm.greathelm:Initialize) action for creating a project in the
  * current directory.
  */
 pub struct InitAction {}
@@ -24,7 +24,7 @@ impl Action for InitAction {
 
     fn get_identifier(&self) -> NamespacedIdentifier {
         NamespacedIdentifier {
-            namespace: "io.github.madelynwith5ns.greathelm".into(),
+            namespace: "io.github.greathelm.greathelm".into(),
             identifier: "Initialize".into(),
         }
     }
@@ -56,7 +56,7 @@ impl Action for InitAction {
         // I *do* remember why this defaults to Custom if not set. Scripts are cool.
         let project_type = state
             .manifest
-            .get_string_property("project-type", "io.github.madelynwith5ns.greathelm:Custom");
+            .get_string_property("project-type", "io.github.greathelm.greathelm:Custom");
 
         let mut use_generator: Option<&Box<dyn ProjectGenerator>> = None;
         let namespaced = NamespacedIdentifier::parse_text(&project_type);

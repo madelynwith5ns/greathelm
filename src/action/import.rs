@@ -5,7 +5,7 @@ use crate::{identify::NamespacedIdentifier, script, store, term::*, version::Ver
 use super::Action;
 
 /**
- * Built-in (io.github.madelynwith5ns.greathelm:Import) action for importing a project into the
+ * Built-in (io.github.greathelm.greathelm:Import) action for importing a project into the
  * global store.
  * Does NOT call build.
  * Calls the pre-import script.
@@ -28,7 +28,7 @@ impl Action for ImportAction {
 
     fn get_identifier(&self) -> NamespacedIdentifier {
         NamespacedIdentifier {
-            namespace: "io.github.madelynwith5ns.greathelm".into(),
+            namespace: "io.github.greathelm.greathelm".into(),
             identifier: "Import".into(),
         }
     }

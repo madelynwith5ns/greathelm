@@ -27,7 +27,7 @@ impl ProjectGenerator for CustomGenerator {
     }
     fn get_identifier(&self) -> crate::identify::NamespacedIdentifier {
         crate::identify::NamespacedIdentifier {
-            namespace: "io.github.madelynwith5ns.greathelm".into(),
+            namespace: "io.github.greathelm.greathelm".into(),
             identifier: "Custom".into(),
         }
     }

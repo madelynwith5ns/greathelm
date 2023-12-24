@@ -8,7 +8,7 @@ use std::fmt::Display;
 pub struct NamespacedIdentifier {
     /**
      * Namespaces are expected to be in the form of a
-     * reverse domain name. Like so: io.github.madelynwith5ns.greathelm
+     * reverse domain name. Like so: io.github.greathelm.greathelm
      */
     pub namespace: String,
     pub identifier: String,

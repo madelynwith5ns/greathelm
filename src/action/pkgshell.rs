@@ -3,7 +3,7 @@ use crate::{builder::dependency, term::*};
 use super::Action;
 
 /**
- * Built-in (io.github.madelynwith5ns.greathelm:PackageShell) for spawning a shell within the
+ * Built-in (io.github.greathelm.greathelm:PackageShell) for spawning a shell within the
  * directory of a project within the local store. Requires a dependency-notation identifier at
  * state.cli_args[2].
  */
@@ -23,7 +23,7 @@ impl Action for PackageShell {
     }
     fn get_identifier(&self) -> crate::identify::NamespacedIdentifier {
         crate::identify::NamespacedIdentifier {
-            namespace: "io.github.madelynwith5ns.greathelm".into(),
+            namespace: "io.github.greathelm.greathelm".into(),
             identifier: "PackageShell".into(),
         }
     }
