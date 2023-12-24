@@ -78,11 +78,7 @@ fn main() {
         manifest.read_and_append(&path);
     }
 
-    for f in flags.keys() {
-        (&mut manifest)
-            .properties
-            .insert(f.clone(), flags.get(f).unwrap().clone());
-    }
+    manifest.append_from_cli_args(std::env::args().collect());
 
     let aliases = manifest.get_aliases_map();
 

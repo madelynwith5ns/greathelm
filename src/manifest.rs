@@ -205,4 +205,37 @@ impl ProjectManifest {
 
         return m;
     }
+
+    /**
+     * Appends properties to this manifest instance from CLI arguments.
+     */
+    pub fn append_from_cli_args(&mut self, args: Vec<String>) {
+        for arg in &args {
+            if arg.starts_with("--") {
+                if arg.contains("=") {
+                    let (k, v) = arg[2..].split_once("=").unwrap();
+                    self.properties.insert(k.into(), v.into());
+                } else {
+                    self.properties.insert(arg[2..].into(), "true".into());
+                }
+            } else if arg.starts_with("@") && arg.contains(":") {
+                let (directive, value) = arg[1..].split_at(match arg.find(":") {
+                    Some(v) => v,
+                    None => {
+                        continue;
+                    }
+                });
+                let directive = &directive[0..directive.len() - 1];
+
+                if !self.directives.contains_key(directive.into()) {
+                    self.directives.insert(directive.into(), Vec::new());
+                }
+
+                self.directives
+                    .get_mut(directive.into())
+                    .unwrap()
+                    .push(value.into());
+            }
+        }
+    }
 }
