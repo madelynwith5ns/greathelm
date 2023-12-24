@@ -66,31 +66,44 @@ pub fn load_plugins() -> Vec<GreathelmPlugin> {
     for plugin_file in plugins_dir.read_dir().unwrap() {
         match plugin_file {
             Ok(f) => unsafe {
-                let library = libloading::Library::new(format!("{}", f.path().display()));
-                if library.is_err() {
-                    error!(
-                        "Failed to load plugin \"{}\". Could not load library.",
-                        f.path().display()
-                    );
-                    continue;
+                match load_plugin_rs(f.path()) {
+                    Ok(pl) => {
+                        plugins.push(pl);
+                    }
+                    Err(_) => {}
                 }
-                let library = library.unwrap();
-                let init_sym: libloading::Symbol<unsafe fn() -> GreathelmPlugin> =
-                    match library.get(b"GHPI_PluginInit") {
-                        Ok(s) => s,
-                        Err(_) => {
-                            error!(
-                                "Loaded library \"{}\" is not a Greathelm plugin or it is invalid.",
-                                f.path().display()
-                            );
-                            continue;
-                        }
-                    };
-                plugins.push(init_sym());
-                FORCEKEEPLOAD.push(library);
             },
             Err(_) => {}
         }
     }
     return plugins;
+}
+
+/**
+ * Loads a plugin using the pure Rust interface.
+ */
+pub unsafe fn load_plugin_rs(path: PathBuf) -> Result<GreathelmPlugin, String> {
+    let library = libloading::Library::new(format!("{}", path.display()));
+    if library.is_err() {
+        error!(
+            "Failed to load plugin \x1bc{}\x1br. Could not load library.",
+            path.display()
+        );
+        return Err("Failed to load".into());
+    }
+    let library = library.unwrap();
+    let init_sym: libloading::Symbol<unsafe fn() -> GreathelmPlugin> =
+        match library.get(b"GHPI_PluginInit") {
+            Ok(s) => s,
+            Err(_) => {
+                error!(
+                    "Loaded library \x1bc{}\x1br is not a Greathelm plugin or it is invalid.",
+                    path.display()
+                );
+                return Err("Failed to load".into());
+            }
+        };
+    let pl = init_sym();
+    FORCEKEEPLOAD.push(library);
+    return Ok(pl);
 }
