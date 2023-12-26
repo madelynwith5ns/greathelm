@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::PathBuf, str::FromStr};
+use std::{path::PathBuf, str::FromStr};
 
 use crate::term::*;
 use action::Action;
@@ -25,30 +25,14 @@ mod util;
 mod version;
 
 fn main() {
-    if std::env::args().len() <= 1 {
-        error!("Usage: greathelm <action> [args]");
-        std::process::exit(0);
-    }
     let args: Vec<String> = std::env::args().collect();
-
     let mut action = match args.get(1) {
         Some(arg) => arg.clone(),
         None => {
-            panic!("Insufficient arguments but check was bypassed. How?")
+            error!("Usage: greathelm <action> [args]");
+            std::process::exit(0);
         }
     };
-    let mut flags = HashMap::new();
-
-    if args.len() >= 3 {
-        for arg in &args {
-            if arg.starts_with("--") && arg.contains("=") {
-                let flag: String = arg.split_once("--").unwrap().1.into();
-                let flag: String = flag.split_once("=").unwrap().0.into();
-                let value: String = arg.split_once("=").unwrap().1.into();
-                flags.insert(flag, value);
-            }
-        }
-    }
 
     config::ensure_config_dirs();
 
