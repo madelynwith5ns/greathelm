@@ -1,6 +1,6 @@
 use std::{path::PathBuf, str::FromStr};
 
-use crate::{store, term::*};
+use crate::{store, template, term::*};
 
 /**
  * Gets the base config directory.
@@ -61,11 +61,13 @@ pub fn ensure_config_dirs() {
         PathBuf::from_str(format!("{}/scripts", ghconfig_base.to_str().unwrap()).as_str()).unwrap();
     let ghdata_base = get_data_base_dir();
     let ghdata_store = store::get_store_path();
+    let ghdata_templates = template::get_templates_path();
     ensure_dir(ghconfig_base);
     ensure_dir(ghconfig_plugins);
     ensure_dir(ghconfig_scripts);
     ensure_dir(ghdata_base);
     ensure_dir(ghdata_store);
+    ensure_dir(ghdata_templates);
 }
 
 /**

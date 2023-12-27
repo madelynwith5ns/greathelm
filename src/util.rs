@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::term::*;
 
@@ -50,5 +50,24 @@ pub fn copy_dir(
         }
     }
 
+    Ok(())
+}
+
+/**
+ * Runs F on all files in the specified directory recursively.
+ */
+pub fn run_on_all<F>(dir: &Path, f: &F) -> std::io::Result<()>
+where
+    F: Fn(PathBuf),
+{
+    for entry in std::fs::read_dir(dir)? {
+        let entry = entry?;
+        let file_type = entry.file_type()?;
+        if file_type.is_dir() {
+            run_on_all(&entry.path(), f)?;
+        } else {
+            f(entry.path());
+        }
+    }
     Ok(())
 }

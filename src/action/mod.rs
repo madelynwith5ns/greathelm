@@ -4,6 +4,7 @@ pub mod build;
 pub mod checkout;
 pub mod import;
 pub mod init;
+pub mod new;
 pub mod pkgscript;
 pub mod pkgshell;
 pub mod remove;

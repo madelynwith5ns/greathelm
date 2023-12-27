@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error, io::Write};
 
 #[macro_export]
 macro_rules! info {
@@ -123,4 +123,37 @@ pub fn _ok(text: String) {
         "{embed_pfx}\x1b[38;5;240m[\x1b[38;5;40mOK   \x1b[38;5;240m] \x1b[1;0m{}",
         text
     );
+}
+
+/**
+ * Asks a question in the terminal.
+ * Blocks until the answer is received.
+ */
+pub fn question(text: String) -> String {
+    // replace shortened color codes
+    let text = text.replace("\x1bc", "\x1b[38;5;12m");
+    let text = text.replace("\x1br", "\x1b[1;0m");
+
+    let mut embed_pfx = String::from("\x1b[38;5;240m");
+    for _ in 0..subprocess::get_embedding_layers() {
+        embed_pfx.push_str("|--> ");
+    }
+
+    print!(
+        "{embed_pfx}\x1b[38;5;240m[\x1b[38;5;12mPROMPT\x1b[38;5;240m] \x1b[1;0m{}",
+        text
+    );
+    std::io::stdout().flush().ok();
+
+    let mut ans = String::new();
+
+    match std::io::stdin().read_line(&mut ans) {
+        Ok(_) => {}
+        Err(_) => {
+            error!("Failed to read your input. Sending a default value.");
+            ans = "INPUTERROR".into();
+        }
+    };
+
+    return ans;
 }

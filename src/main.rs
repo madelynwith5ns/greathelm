@@ -20,6 +20,7 @@ mod script;
 mod state;
 mod store;
 mod subprocess;
+mod template;
 mod term;
 mod util;
 mod version;
@@ -96,6 +97,7 @@ fn main() {
     actions.push(Box::new(action::remove::RemoveAction::create()));
     actions.push(Box::new(action::pkgshell::PackageShell::create()));
     actions.push(Box::new(action::pkgscript::PackageScript::create()));
+    actions.push(Box::new(action::new::NewAction::create()));
 
     // load plugins here..
     let plugins = plugin::load_plugins();
