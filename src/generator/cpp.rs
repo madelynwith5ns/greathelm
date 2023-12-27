@@ -30,7 +30,7 @@ impl ProjectGenerator for CPPGenerator {
             identifier: "C++".into(),
         }
     }
-    fn generate(&self, cwd: PathBuf) {
+    fn generate(&self, _cwd: PathBuf) {
         super::helper::create_directory("src");
         super::helper::create_directory("lib");
         super::helper::create_directory("export");
@@ -45,30 +45,44 @@ impl ProjectGenerator for CPPGenerator {
                                  }\n";
         super::helper::create_file("src/main.cpp", main_cpp_contents);
 
-        let project_name = match cwd.file_name() {
-            Some(s) => s.to_string_lossy().to_string(),
-            None => "example".into(),
-        };
+        let mut project_name = question("Project name?".into());
+        let mut project_namespace = question("Project namespace?".into());
+        let mut project_author = question("Project author?".into());
+        let mut project_emit = question("Emit type (binary / dylib)?".into());
+
+        if project_name == "" {
+            project_name = "UnnamedProject".into();
+        }
+        if project_namespace == "" {
+            project_namespace = "com.example".into();
+        }
+        if project_author == "" {
+            project_author = "Example Author".into();
+        }
+        if project_emit != "binary" && project_emit != "dylib" {
+            project_emit = "binary".into();
+        }
+
+        // i have no idea why rustfmt is indenting this in such an ugly fashion but it is and we
+        // shall deal with it.
         super::helper::create_file(
             "Project.ghm",
             format!(
                 "# Greathelm Project Manifest\n\
                                        Project-Name={project_name}\n\
-                                       Project-Namespace=com.example\n\
-                                       Project-Author=Example Author\n\
+                                       Project-Namespace={project_namespace}\n\
+                                       Project-Author={project_author}\n\
                                        Project-Version=0.1.0-alpha\n\
-                                       Project-Type=C++\n\
-                                       C++-Stdlib-Flavor=stdc++\n\
+                                       Project-Type=C\n\
                                        Compiler-Opt-Level=2\n\
                                        Executable-Name={project_name}\n\
-                                       Emit=binary\n\
+                                       Emit={project_emit}\n\
                                        \n\
                                        Greathelm-Version={}\n",
                 env!("CARGO_PKG_VERSION")
             )
             .as_str(),
         );
-
         ok!("Succeeded in generating project from template.");
     }
 }

@@ -156,5 +156,5 @@ pub fn question(text: String) -> String {
 
     print!("\x1b[1;0m");
     std::io::stdout().flush().ok();
-    return ans;
+    return ans.replace("\n", "");
 }

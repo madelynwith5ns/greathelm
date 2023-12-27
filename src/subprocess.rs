@@ -19,9 +19,27 @@ pub fn get_embedding_layers() -> usize {
  * Builds the project located at `path`.
  */
 pub fn build_project(path: &Path) {
-    info!("Spawning \x1bcgreathelm build\x1br subprocess...");
-    let status = duct::cmd!(std::env::current_exe().unwrap(), "build")
-        .dir(path)
+    spawn_with_args(path, vec!["build".into()]);
+}
+
+/**
+ * Spawns a subprocess with the specified arguments.
+ */
+pub fn spawn_with_args(cwd: &Path, args: Vec<String>) {
+    info!(
+        "Spawning \x1bcgreathelm {}\x1br subprocess.",
+        match args.get(0) {
+            Some(v) => {
+                v
+            }
+            None => {
+                error!("No action provided to subprocess::spawn_with_args. Abort.");
+                return;
+            }
+        }
+    );
+    let status = duct::cmd(std::env::current_exe().unwrap(), args)
+        .dir(cwd)
         .env(
             "GREATHELM_EMBEDDED_LAYERS",
             format!("{}", get_embedding_layers() + 1),
@@ -31,9 +49,9 @@ pub fn build_project(path: &Path) {
         .unwrap()
         .status;
     if status.success() {
-        ok!("Build subprocess succeeded.");
+        ok!("Subprocess succeeded.");
     } else {
-        error!("Build subprocess failed.");
+        error!("Subprocess failed.");
         std::process::exit(1);
     }
 }

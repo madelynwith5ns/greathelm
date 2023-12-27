@@ -119,6 +119,12 @@ pub fn generate_from_template(manifest: &ProjectManifest, template: String) {
             vec![]
         }
     };
+    let defaults = match tdef.directives.get("PromptDefault") {
+        Some(s) => s.to_owned(),
+        None => {
+            vec![]
+        }
+    };
 
     let mut replace_in_files: HashMap<String, String> = HashMap::new();
 
@@ -134,8 +140,34 @@ pub fn generate_from_template(manifest: &ProjectManifest, template: String) {
             prompt.push_str(s);
             prompt.push_str(" ");
         }
+        if prompt != "" {
+            prompt = prompt[..prompt.len() - 1].into()
+        }
 
-        replace_in_files.insert(key.into(), question(prompt).replace("\n", ""));
+        let mut p = question(prompt);
+        if p.is_empty() {
+            for d in &defaults {
+                if !d.contains(" ") {
+                    continue;
+                }
+                let mut segments = d.split(" ");
+                let d_key = segments.nth(0).unwrap();
+                let mut default: String = String::new();
+                for s in segments {
+                    default.push_str(s);
+                    default.push_str(" ");
+                }
+                if default != "" {
+                    default = default[..default.len() - 1].into()
+                }
+
+                if d_key == key {
+                    p = default;
+                }
+            }
+        }
+
+        replace_in_files.insert(key.into(), p);
         // remove the
         // newlines from
         // the response
@@ -162,5 +194,9 @@ pub fn generate_from_template(manifest: &ProjectManifest, template: String) {
     })
     .unwrap();
 
+    std::fs::remove_file(Path::new(
+        format!("{}/TemplateDef.ghm", dir.display()).as_str(),
+    ))
+    .ok();
     ok!("Finished generating project from template");
 }
