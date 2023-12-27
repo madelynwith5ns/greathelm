@@ -139,10 +139,7 @@ pub fn question(text: String) -> String {
         embed_pfx.push_str("|--> ");
     }
 
-    print!(
-        "{embed_pfx}\x1b[38;5;240m[\x1b[38;5;12mPROMPT\x1b[38;5;240m] \x1b[1;0m{}",
-        text
-    );
+    print!("{embed_pfx}\x1b[38;5;240m[\x1b[38;5;12mPROMPT\x1b[38;5;240m] \x1b[1;0m{text} \x1b[38;5;12m");
     std::io::stdout().flush().ok();
 
     let mut ans = String::new();
@@ -155,5 +152,7 @@ pub fn question(text: String) -> String {
         }
     };
 
+    print!("\x1b[1;0m");
+    std::io::stdout().flush().ok();
     return ans;
 }
