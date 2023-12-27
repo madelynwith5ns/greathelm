@@ -3,8 +3,8 @@ use crate::term::*;
 use super::Action;
 
 /**
- * Built-in (io.github.greathelm.greathelm:Script) action to run a script in the current
- * project.
+ * Built-in (io.github.greathelm.greathelm:New) action to create a project from
+ * a template.
  */
 pub struct NewAction {}
 impl NewAction {

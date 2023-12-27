@@ -1,7 +1,8 @@
 use std::{path::PathBuf, str::FromStr};
 
 use crate::{
-    action::Action, builder::ProjectBuilder, config, generator::ProjectGenerator, term::*,
+    action::Action, builder::ProjectBuilder, config, generator::ProjectGenerator,
+    identify::NamespacedIdentifier, term::*,
 };
 
 // this is just here to keep things loaded because libloading automatically
@@ -15,6 +16,7 @@ static mut FORCEKEEPLOAD: Vec<libloading::Library> = Vec::new();
  * as it is. Future versions of the interface will be new
  * structs.
  */
+#[repr(C)]
 pub struct GreathelmPlugin {
     /**
      * This is used as the display name of the plugin.
@@ -22,10 +24,11 @@ pub struct GreathelmPlugin {
      */
     pub name: String,
     /**
-     * All builders and generators within this plugin
-     * are expected to reside within this namespace.
+     * All builders and generators within this plugin are expected to reside underneath this
+     * identifier. For example, if the identifier is io.github.greathelm:Greathelm, all plugin
+     * components are expected to be under io.github.greathelm.greathelm:<identifier here>.
      */
-    pub namespace: String,
+    pub identifier: NamespacedIdentifier,
     /**
      * This Vec contains all the plugin's builders.
      * Its contents will be copied into the global
@@ -45,6 +48,26 @@ pub struct GreathelmPlugin {
      * init.
      */
     pub actions: Vec<Box<dyn Action>>,
+    /**
+     * List of all templates this plugin provides. If the template does not exist, the plugin will
+     * be asked to create it.
+     */
+    pub provides_templates: Vec<NamespacedIdentifier>,
+
+    // Plugin Function Pointers
+    /**
+     * Called when the plugin needs to create a template that does not exist.
+     */
+    pub ghpi_create_template: &'static dyn Fn(NamespacedIdentifier, PathBuf) -> bool,
+    /**
+     * Called when the plugin is `greathelm install`ed.
+     */
+    pub ghpi_first_time_setup: &'static dyn Fn(),
+    /**
+     * Called when the plugin is `greathelm uninstall`ed.
+     * The plugin should remove all templates and clean up any other files it may have created.
+     */
+    pub ghpi_uninstall: &'static dyn Fn(),
 }
 
 /**
@@ -68,6 +91,15 @@ pub fn load_plugins() -> Vec<GreathelmPlugin> {
             Ok(f) => unsafe {
                 match load_plugin_rs(f.path()) {
                     Ok(pl) => {
+                        for t in &pl.provides_templates {
+                            let tp = crate::template::get_template_path(t);
+                            if !tp.exists() {
+                                let func = pl.ghpi_create_template;
+                                info!("Plugin-provided template \x1bc{t}\x1br does not exist. Creating it now...");
+                                func(t.to_owned(), tp);
+                            }
+                        }
+
                         plugins.push(pl);
                     }
                     Err(_) => {}
