@@ -39,7 +39,7 @@ To get started using Greathelm, you first need to install it.
 You will need to have [Rust](https://rust-lang.org) installed (specifically, you will need Cargo).
 
 ```sh
-git clone https://github.com/MadelynWith5Ns/Greathelm && cd Greathelm
+git clone https://github.com/Greathelm/Greathelm && cd Greathelm
 cargo build --release
 cp target/release/greathelm ~/.local/bin/greathelm
 ```
