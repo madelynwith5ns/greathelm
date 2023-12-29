@@ -104,12 +104,12 @@ impl Action for BuildAction {
                     info!("Building...");
                     builder.build(&state.manifest);
                 } else {
-                    info!("Validating project failed.");
+                    error!("Validating project failed.");
                 }
             }
             None => {
-                info!("Could not find the required builder \x1bc{project_type}\x1br.");
-                info!("Are you missing a plugin?");
+                error!("Could not find the required builder \x1bc{project_type}\x1br.");
+                error!("Are you missing a plugin?");
                 std::process::exit(1);
             }
         }
