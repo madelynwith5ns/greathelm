@@ -62,10 +62,10 @@ impl Action for AboutAction {
             state.plugins.len()
         );
         for p in &state.plugins {
-            info!(
-                "- \x1bc{}\x1br v\x1bc{}\x1br (\x1bc{}\x1br)",
-                p.name, p.version, p.identifier
-            );
+            info!("- \x1bc{}\x1br (\x1bc{}\x1br)", p.name, p.identifier);
+            info!("  |- Version: \x1bcv{}\x1br", p.version);
+            info!("  |- Vendor: \x1bc{}\x1br", p.vendor);
+            info!("  |- Description: {}", p.description);
         }
         info!(
             "== Available Actions (\x1bc{}\x1br) ==",

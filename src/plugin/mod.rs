@@ -24,6 +24,14 @@ pub struct GreathelmPlugin {
      */
     pub name: String,
     /**
+     * Plugin vendor name
+     */
+    pub vendor: String,
+    /**
+     * Plugin description
+     */
+    pub description: String,
+    /**
      * All builders and generators within this plugin are expected to reside underneath this
      * identifier. For example, if the identifier is io.github.greathelm:Greathelm, all plugin
      * components are expected to be under io.github.greathelm.greathelm:<identifier here>.
@@ -87,6 +95,8 @@ impl GreathelmPlugin {
     pub fn as_info(&self) -> PluginInfo {
         let mut info = PluginInfo {
             name: self.name.clone(),
+            vendor: self.vendor.clone(),
+            description: self.description.clone(),
             identifier: self.identifier.clone(),
             version: self.version.clone(),
             builder_ids: vec![],
@@ -129,6 +139,8 @@ impl GreathelmPlugin {
 #[repr(C)]
 pub struct PluginInfo {
     pub name: String,
+    pub vendor: String,
+    pub description: String,
     pub identifier: NamespacedIdentifier,
     pub version: Version,
     pub builder_ids: Vec<NamespacedIdentifier>,
