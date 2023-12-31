@@ -1,5 +1,6 @@
 use crate::{identify::NamespacedIdentifier, state::GreathelmState};
 
+pub mod about;
 pub mod build;
 pub mod checkout;
 pub mod import;
