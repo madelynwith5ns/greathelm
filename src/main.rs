@@ -85,10 +85,12 @@ fn main() {
     builders.push(Box::new(builder::c::CBuilder::create()));
     builders.push(Box::new(builder::cpp::CPPBuilder::create()));
     builders.push(Box::new(builder::custom::CustomBuilder::create()));
+    builders.push(Box::new(builder::rust::RustBuilder::create()));
 
     generators.push(Box::new(generator::c::CGenerator::create()));
     generators.push(Box::new(generator::cpp::CPPGenerator::create()));
     generators.push(Box::new(generator::custom::CustomGenerator::create()));
+    generators.push(Box::new(generator::rust::RustGenerator::create()));
 
     actions.push(Box::new(action::init::InitAction::create()));
     actions.push(Box::new(action::build::BuildAction::create()));

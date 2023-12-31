@@ -5,6 +5,7 @@ pub mod cpp;
 pub mod custom;
 pub mod dependency;
 pub mod parallel;
+pub mod rust;
 
 /**
  * Trait for project builders. These builders handle building the project, validating if it

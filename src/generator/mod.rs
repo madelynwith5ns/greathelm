@@ -6,6 +6,7 @@ pub mod c;
 pub mod cpp;
 pub mod custom;
 pub mod helper;
+pub mod rust;
 
 /**
  * Trait for all project generators.
