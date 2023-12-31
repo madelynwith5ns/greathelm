@@ -15,6 +15,7 @@ pub struct GreathelmState {
     pub cli_args: Vec<String>,
 }
 
+#[allow(dead_code)]
 impl GreathelmState {
     pub fn get_builder_by_id(&self, id: &NamespacedIdentifier) -> Option<&Box<dyn ProjectBuilder>> {
         for b in &self.builders {

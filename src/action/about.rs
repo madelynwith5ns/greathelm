@@ -1,4 +1,4 @@
-use crate::{script, term::*};
+use crate::{config, store, template, term::*};
 
 use super::Action;
 
@@ -27,5 +27,78 @@ impl Action for AboutAction {
         }
     }
 
-    fn execute(&self, state: &crate::state::GreathelmState) {}
+    fn execute(&self, state: &crate::state::GreathelmState) {
+        info!("== Build Information ==");
+        info!("Name: \x1bc{}\x1br", env!("CARGO_PKG_NAME"));
+        info!("Version: \x1bc{}\x1br", env!("CARGO_PKG_VERSION"));
+        info!("== Install Information ==");
+        match std::env::current_exe() {
+            Ok(p) => {
+                info!("Executable Path: \x1bc{}\x1br", p.display());
+            }
+            Err(_) => {
+                error!("Executable Path: \x1bcUnknown\x1br");
+            }
+        };
+        info!(
+            "Config Directory: \x1bc{}/\x1br",
+            config::get_config_base_dir().display()
+        );
+        info!(
+            "Data Directory: \x1bc{}/\x1br",
+            config::get_data_base_dir().display()
+        );
+        info!(
+            "Local Store Path: \x1bc{}/\x1br",
+            store::get_store_path().display()
+        );
+        info!(
+            "Templates Path: \x1bc{}/\x1br",
+            template::get_templates_path().display()
+        );
+
+        info!(
+            "== Installed Plugins (\x1bc{}\x1br) ==",
+            state.plugins.len()
+        );
+        for p in &state.plugins {
+            info!(
+                "- \x1bc{}\x1br v\x1bc{}\x1br (\x1bc{}\x1br)",
+                p.name, p.version, p.identifier
+            );
+        }
+        info!(
+            "== Available Actions (\x1bc{}\x1br) ==",
+            state.actions.len()
+        );
+        for a in &state.actions {
+            info!(
+                "- \x1bc{}\x1br (\x1bc{}\x1br)",
+                a.get_name(),
+                a.get_identifier()
+            );
+        }
+        info!(
+            "== Available Builders (\x1bc{}\x1br) ==",
+            state.builders.len()
+        );
+        for b in &state.builders {
+            info!(
+                "- \x1bc{}\x1br (\x1bc{}\x1br)",
+                b.get_name(),
+                b.get_identifier()
+            );
+        }
+        info!(
+            "== Available Generators (\x1bc{}\x1br) ==",
+            state.generators.len()
+        );
+        for g in &state.generators {
+            info!(
+                "- \x1bc{}\x1br (\x1bc{}\x1br)",
+                g.get_name(),
+                g.get_identifier()
+            );
+        }
+    }
 }
