@@ -2,7 +2,7 @@ use std::{path::PathBuf, str::FromStr};
 
 use crate::{
     action::Action, builder::ProjectBuilder, config, generator::ProjectGenerator,
-    identify::NamespacedIdentifier, term::*,
+    identify::NamespacedIdentifier, term::*, version::Version,
 };
 
 // this is just here to keep things loaded because libloading automatically
@@ -29,6 +29,10 @@ pub struct GreathelmPlugin {
      * components are expected to be under io.github.greathelm.greathelm:<identifier here>.
      */
     pub identifier: NamespacedIdentifier,
+    /**
+     * Version of the plugin
+     */
+    pub version: Version,
     /**
      * This Vec contains all the plugin's builders.
      * Its contents will be copied into the global
@@ -84,6 +88,7 @@ impl GreathelmPlugin {
         let mut info = PluginInfo {
             name: self.name.clone(),
             identifier: self.identifier.clone(),
+            version: self.version.clone(),
             builder_ids: vec![],
             generator_ids: vec![],
             action_ids: vec![],
@@ -121,9 +126,11 @@ impl GreathelmPlugin {
  * contents, not the actual contents. It does however, contain the function pointers.
  * For descriptions on what the fields on this struct do, look at the GreathelmPlugin struct.
  */
+#[repr(C)]
 pub struct PluginInfo {
     pub name: String,
     pub identifier: NamespacedIdentifier,
+    pub version: Version,
     pub builder_ids: Vec<NamespacedIdentifier>,
     pub generator_ids: Vec<NamespacedIdentifier>,
     pub action_ids: Vec<NamespacedIdentifier>,
