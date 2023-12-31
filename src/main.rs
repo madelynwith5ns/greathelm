@@ -5,6 +5,7 @@ use action::Action;
 use builder::ProjectBuilder;
 use generator::ProjectGenerator;
 use identify::NamespacedIdentifier;
+use plugin::PluginInfo;
 use state::GreathelmState;
 
 mod action;
@@ -102,7 +103,11 @@ fn main() {
     actions.push(Box::new(action::uninstall::UninstallAction::create()));
 
     // load plugins here..
-    for plugin in plugin::load_plugins() {
+    let plugins = plugin::load_plugins();
+    let mut infos: Vec<PluginInfo> = Vec::new();
+    for plugin in plugins {
+        infos.push(plugin.as_info());
+
         for b in plugin.builders {
             builders.push(b);
         }
@@ -119,6 +124,7 @@ fn main() {
         generators: generators,
         manifest: manifest,
         actions: actions,
+        plugins: infos,
         cli_args: std::env::args().collect(),
     };
 

@@ -68,6 +68,72 @@ pub struct GreathelmPlugin {
      * The plugin should remove all templates and clean up any other files it may have created.
      */
     pub ghpi_uninstall: &'static dyn Fn(),
+    /**
+     * This method entails a message being passed to a plugin from some other portion of the
+     * software.
+     */
+    pub ghpi_pluginmessage: &'static dyn Fn(&[u8]),
+    /**
+     * Same as ghpi_pluginmessage but explicitly for text rather than arbitrary data.
+     */
+    pub ghpi_plugintextmessage: &'static dyn Fn(&str),
+}
+
+impl GreathelmPlugin {
+    pub fn as_info(&self) -> PluginInfo {
+        let mut info = PluginInfo {
+            name: self.name.clone(),
+            identifier: self.identifier.clone(),
+            builder_ids: vec![],
+            generator_ids: vec![],
+            action_ids: vec![],
+            provides_templates: vec![],
+
+            ghpi_create_template: self.ghpi_create_template,
+            ghpi_first_time_setup: self.ghpi_first_time_setup,
+            ghpi_uninstall: self.ghpi_uninstall,
+            ghpi_pluginmessage: self.ghpi_pluginmessage,
+            ghpi_plugintextmessage: self.ghpi_plugintextmessage,
+        };
+
+        for b in &self.builders {
+            info.builder_ids.push(b.get_identifier());
+        }
+
+        for g in &self.generators {
+            info.generator_ids.push(g.get_identifier());
+        }
+
+        for a in &self.actions {
+            info.action_ids.push(a.get_identifier());
+        }
+
+        for t in &self.provides_templates {
+            info.provides_templates.push(t.to_owned());
+        }
+
+        return info;
+    }
+}
+
+/**
+ * This is passed around in GreathelmState. It only contains information about the plugin and its
+ * contents, not the actual contents. It does however, contain the function pointers.
+ * For descriptions on what the fields on this struct do, look at the GreathelmPlugin struct.
+ */
+pub struct PluginInfo {
+    pub name: String,
+    pub identifier: NamespacedIdentifier,
+    pub builder_ids: Vec<NamespacedIdentifier>,
+    pub generator_ids: Vec<NamespacedIdentifier>,
+    pub action_ids: Vec<NamespacedIdentifier>,
+    pub provides_templates: Vec<NamespacedIdentifier>,
+
+    pub ghpi_create_template: &'static dyn Fn(NamespacedIdentifier, PathBuf) -> bool,
+    pub ghpi_first_time_setup: &'static dyn Fn(),
+    pub ghpi_uninstall: &'static dyn Fn(),
+    pub ghpi_pluginmessage: &'static dyn Fn(&[u8]),
+    pub ghpi_plugintextmessage: &'static dyn Fn(&str),
 }
 
 /**

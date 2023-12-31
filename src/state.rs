@@ -1,5 +1,6 @@
 use crate::{
-    action::Action, builder::ProjectBuilder, generator::ProjectGenerator, manifest::ProjectManifest,
+    action::Action, builder::ProjectBuilder, generator::ProjectGenerator,
+    manifest::ProjectManifest, plugin::PluginInfo,
 };
 
 /**
@@ -10,5 +11,6 @@ pub struct GreathelmState {
     pub generators: Vec<Box<dyn ProjectGenerator>>,
     pub actions: Vec<Box<dyn Action>>,
     pub manifest: ProjectManifest,
+    pub plugins: Vec<PluginInfo>,
     pub cli_args: Vec<String>,
 }
