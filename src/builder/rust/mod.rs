@@ -1,4 +1,4 @@
-use std::{io::Write, path::Path};
+use std::path::Path;
 
 use crate::{builder::dependency, manifest::ProjectManifest, script, subprocess, term::*};
 
@@ -106,6 +106,109 @@ impl ProjectBuilder for RustBuilder {
                 let libname = d.split_once("vendored/").unwrap().1;
                 rustc_args.push("--extern".into());
                 rustc_args.push(format!("{libname}=lib/rlib/lib{libname}.rlib"));
+            } else if d.starts_with("crates.io/") {
+                // crates.io dependencies
+                let mut d = d.split_once("crates.io/").unwrap().1;
+                let mut is_cargo: bool = false;
+                if d.starts_with("cargo/") {
+                    d = d.split_once("cargo/").unwrap().1;
+                    is_cargo = true;
+                }
+
+                if !d.contains("@") {
+                    error!("You must specify a version for \x1bccrates.io\x1br dependencies.");
+                    error!("Offending dependency: {d}");
+                    std::process::exit(1);
+                }
+                let (d, ver) = d.split_once("@").unwrap();
+
+                let path = format!("lib/crates/lib{d}.rlib");
+                let path = Path::new(&path);
+                if !path.exists() {
+                    info!("Downloading {d}.crate");
+                    let curl_incantation = match duct::cmd!(
+                        "curl",
+                        "-L",
+                        format!("https://crates.io/api/v1/crates/{d}/{ver}/download"),
+                        "-o",
+                        format!("lib/crates/{d}.crate")
+                    )
+                    .stderr_to_stdout()
+                    .run()
+                    {
+                        Ok(v) => v,
+                        Err(_) => {
+                            error!("Failed to download crate \x1bc{d}\x1br");
+                            error!("Make sure you have \x1bccurl\x1br installed and available in your path");
+                            error!("and that you provided a valid crate name and version.");
+                            std::process::exit(1);
+                        }
+                    };
+                    if !curl_incantation.status.success() {
+                        error!("Failed to download crate \x1bc{d}\x1br");
+                        error!("Make sure you have \x1bccurl\x1br installed and available in your path");
+                        error!("and that you provided a valid crate name and version.");
+                        std::process::exit(1);
+                    }
+
+                    info!("Extracting {d}.crate...");
+
+                    let success = match duct::cmd!("tar", "-xf", format!("{d}.crate"))
+                        .dir(format!("lib/crates"))
+                        .stderr_to_stdout()
+                        .run()
+                    {
+                        Ok(v) => v.status.success(),
+                        Err(_) => false,
+                    };
+                    if !success {
+                        error!("Failed to extract {d}.crate");
+                        std::process::exit(1);
+                    }
+
+                    if is_cargo {
+                        info!("{d} is a Cargo dependency. Building with cargo...");
+                        let cargo = match duct::cmd!(
+                            "cargo",
+                            "rustc",
+                            "--lib",
+                            "--release",
+                            "--crate-type",
+                            "rlib"
+                        )
+                        .dir(format!("lib/crates/{d}-{ver}"))
+                        .stderr_to_stdout()
+                        .run()
+                        {
+                            Ok(v) => v.status.success(),
+                            Err(_) => false,
+                        };
+                        if !cargo {
+                            error!("Failed to build Cargo dependency.");
+                            std::process::exit(1);
+                        }
+
+                        match std::fs::copy(
+                            Path::new(&format!("lib/crates/{d}-{ver}/target/release/lib{d}.rlib")),
+                            Path::new(&format!("lib/crates/lib{d}.rlib")),
+                        ) {
+                            Ok(_) => {
+                                ok!("Finished building crates.io+Cargo dependency \x1bc{d}\x1br");
+                            }
+                            Err(_) => {
+                                error!("Failed to copy out dependency \x1bc{d}\x1br");
+                                std::process::exit(1);
+                            }
+                        };
+                    } else {
+                        error!("Greathelm does not currently support building crates.io dependencies without Cargo.");
+                        error!("Please convert dependency \x1bc{d}\x1br to a Cargo dependency by appending \x1bccargo/\x1br after \x1bccrates.io/\x1br.");
+                        std::process::exit(1);
+                    }
+                }
+
+                rustc_args.push("--extern".into());
+                rustc_args.push(format!("{d}=lib/crates/lib{d}.rlib"));
             } else {
                 // Greathelm deps (dependencies in the local store)
                 let (id, version) = dependency::parse_dependency_notation(d.to_owned());

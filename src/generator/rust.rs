@@ -34,6 +34,7 @@ impl ProjectGenerator for RustGenerator {
         super::helper::create_directory("src");
         super::helper::create_directory("lib");
         super::helper::create_directory("lib/rlib");
+        super::helper::create_directory("lib/crates");
         super::helper::create_directory("export");
 
         let mut project_name = question("Project name?".into());
