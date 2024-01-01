@@ -33,6 +33,7 @@ impl ProjectGenerator for RustGenerator {
     fn generate(&self, _cwd: PathBuf) {
         super::helper::create_directory("src");
         super::helper::create_directory("lib");
+        super::helper::create_directory("lib/rlib");
         super::helper::create_directory("export");
 
         let mut project_name = question("Project name?".into());
