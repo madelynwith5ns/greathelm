@@ -189,7 +189,10 @@ impl ProjectBuilder for RustBuilder {
                         }
 
                         match std::fs::copy(
-                            Path::new(&format!("lib/crates/{d}-{ver}/target/release/lib{d}.rlib")),
+                            Path::new(&format!(
+                                "lib/crates/{d}-{ver}/target/release/lib{}.rlib",
+                                d.replace("-", "_")
+                            )),
                             Path::new(&format!("lib/crates/lib{d}.rlib")),
                         ) {
                             Ok(_) => {
@@ -208,7 +211,7 @@ impl ProjectBuilder for RustBuilder {
                 }
 
                 rustc_args.push("--extern".into());
-                rustc_args.push(format!("{d}=lib/crates/lib{d}.rlib"));
+                rustc_args.push(format!("{}=lib/crates/lib{d}.rlib", d.replace("-", "_")));
             } else {
                 // Greathelm deps (dependencies in the local store)
                 let (id, version) = dependency::parse_dependency_notation(d.to_owned());
