@@ -173,7 +173,7 @@ impl ProjectManifest {
         for m in self.directives.get("Module").unwrap() {
             let module_name = m.split_once(" ").unwrap().0;
             let mut files: HashMap<String, String> = HashMap::new();
-            for path in m.split(" ").skip(2) {
+            for path in m.split(" ").skip(1) {
                 if !path.contains(":") {
                     continue;
                 }
