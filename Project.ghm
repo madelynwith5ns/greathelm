@@ -6,4 +6,8 @@ Project-Version=0.1.0
 Project-Type=Custom
 Output-Name=greathelm
 
+
+# Import plugins if we have any
+@Import Plugins.ghm
+
 Greathelm-Version=0.1.0
