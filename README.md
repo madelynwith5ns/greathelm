@@ -15,6 +15,11 @@ New generators can be added using plugins.
 ### Builders
 Projects are built using builders (crazy). There is a builder for every included generator. 
 
+### Additional Language Support
+Support for other languages can be added to Greathelm via plugins. There is currently 1 language supported this way.
+
+- **Rust** [GHP-Rust Plugin](https://github.com/Greathelm/GHP-Rust) (Unstable)
+
 ### Modules
 Projects can have `modules` attached to them. Modules are smaller Greathelm projects referenced by a larger one using the `@Module` directive. These projects are built first and the specified files are copied to their location in the larger project's source tree.
 Here's an example of using a `libFoo` module in a C project:
