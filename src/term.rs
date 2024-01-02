@@ -50,7 +50,7 @@ pub fn _info(text: String) {
 
     let mut embed_pfx = String::from("\x1b[38;5;240m");
     for _ in 0..subprocess::get_embedding_layers() {
-        embed_pfx.push_str("|--> ");
+        embed_pfx.push_str("\x1b[38;5;240m[\x1b[38;5;60mCHILD\x1b[38;5;240m] ");
     }
 
     println!(
@@ -69,7 +69,7 @@ pub fn _warn(text: String) {
 
     let mut embed_pfx = String::from("\x1b[38;5;240m");
     for _ in 0..subprocess::get_embedding_layers() {
-        embed_pfx.push_str("|--> ");
+        embed_pfx.push_str("\x1b[38;5;240m[\x1b[38;5;60mCHILD\x1b[38;5;240m] ");
     }
 
     eprintln!(
@@ -88,7 +88,7 @@ pub fn _error(text: String) {
 
     let mut embed_pfx = String::from("\x1b[38;5;240m");
     for _ in 0..subprocess::get_embedding_layers() {
-        embed_pfx.push_str("|--> ");
+        embed_pfx.push_str("\x1b[38;5;240m[\x1b[38;5;60mCHILD\x1b[38;5;240m] ");
     }
 
     eprintln!(
@@ -116,7 +116,7 @@ pub fn _ok(text: String) {
 
     let mut embed_pfx = String::from("\x1b[38;5;240m");
     for _ in 0..subprocess::get_embedding_layers() {
-        embed_pfx.push_str("|--> ");
+        embed_pfx.push_str("\x1b[38;5;240m[\x1b[38;5;60mCHILD\x1b[38;5;240m] ");
     }
 
     println!(
@@ -136,7 +136,7 @@ pub fn question(text: String) -> String {
 
     let mut embed_pfx = String::from("\x1b[38;5;240m");
     for _ in 0..subprocess::get_embedding_layers() {
-        embed_pfx.push_str("|--> ");
+        embed_pfx.push_str("\x1b[38;5;240m[\x1b[38;5;60mCHILD\x1b[38;5;240m] ");
     }
 
     print!(
