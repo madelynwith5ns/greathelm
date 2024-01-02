@@ -13,8 +13,6 @@ fi
 
 mkdir modules
 
-rm Plugins.ghm || true
-
 echo Fetching: GHP-Rust
 git clone https://github.com/Greathelm/GHP-Rust modules/ghprust
 echo '@Module ghprust build/ghprust.ghp:build/ghprust.ghp' >> Plugins.ghm
