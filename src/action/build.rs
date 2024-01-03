@@ -9,6 +9,7 @@ use super::Action;
  * Built-in action (io.github.greathelm.greathelm:Build) for building a project.
  * This is where modules are built.
  * Calls validate() and then build() if that succeeds.
+ * Also handles @Export directives.
  */
 pub struct BuildAction {}
 impl BuildAction {
