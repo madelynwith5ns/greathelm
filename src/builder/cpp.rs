@@ -61,8 +61,10 @@ impl ProjectBuilder for CPPBuilder {
         } else if emit == "shared" || emit == "dylib" {
             info!("Emitting a \x1bcDynamic Library\x1br");
             emit = "dylib".into();
+        } else if emit == "staticlib" {
+            info!("Emitting a \x1bcStatic Library\x1br");
         } else {
-            warning!("Unrecognized EMIT. Defaulting to \x1bcbinary\x1br.");
+            warning!("Unrecognized EMIT. Defaulting to binary.");
             emit = "binary".into();
         } // output type. binary/executable = normal executable, shared/dylib = .so shared object
         let debug_info = manifest.get_bool_property("debug-info", false);
@@ -283,65 +285,87 @@ impl ProjectBuilder for CPPBuilder {
         if emit == "dylib" {
             prefix = "lib";
             suffix = ".so";
+        } else if emit == "staticlib" {
+            prefix = "lib";
+            suffix = ".a";
         }
 
-        if script::has_script("linker") {
-            let mut args: Vec<String> = vec![format!("build/{prefix}{artifact}{suffix}")];
+        // we dont need the linker on static libraries
+        if emit == "staticlib" {
+            let mut args = vec!["rcs".into(), format!("build/{prefix}{artifact}{suffix}")];
             args.append(&mut link);
-            script::run_script("linker", args);
-        } else {
-            let mut ld_incantation = Command::new(ld.clone());
-
-            let ld_incantation = ld_incantation
-                .arg("-o")
-                .arg(format!("build/{prefix}{artifact}{suffix}"))
-                .args(ldflags.clone())
-                .args(link)
-                .arg("-I./lib/include") // local lib headers
-                .arg("-L./lib/shared") // local lib binaries
-                .args(link_dep_args)
-                .stdout(std::process::Stdio::piped())
-                .stderr(std::process::Stdio::piped());
-
-            // dylibs
-            if emit == "shared" || emit == "dylib" {
-                ld_incantation.arg("-shared");
-            }
-
-            let at_directives = manifest.directives.get("Directive").unwrap();
-            // no standard lib directives
-            if at_directives.contains(&"no-link-libc".into()) {
-                ld_incantation.arg("-nostdlib");
-            } else {
-                // dont link c++ stdlib if we aren't linking libc
-                ld_incantation.arg(format!("-l{stdlibflavor}"));
-            }
-            if at_directives.contains(&"freestanding".into()) {
-                ld_incantation.arg("-ffreestanding");
-            }
-
-            // custom linker script
-            match manifest.properties.get("C-Linker-Script") {
-                Some(script) => {
-                    ld_incantation.arg("-T");
-                    ld_incantation.arg(script);
+            let ar = match duct::cmd("ar", args).stderr_to_stdout().run() {
+                Ok(v) => v,
+                Err(_) => {
+                    error!("Failed to bundle static library.");
+                    std::process::exit(1);
                 }
-                None => {}
-            }
-
-            // finally, actually link
-            let ld_incantation = ld_incantation.output().unwrap();
-
-            print!("{}", String::from_utf8(ld_incantation.stdout).unwrap());
-            eprint!("{}", String::from_utf8(ld_incantation.stderr).unwrap());
-
-            std::io::stdout().flush().ok();
-            std::io::stderr().flush().ok();
-
-            if ld_incantation.status.success() {
-                ok!("Project successfully built!");
+            };
+            if ar.status.success() {
+                ok!("Successfully bundled static library.");
             } else {
-                error!("Project failed to build.");
+                error!("Failed to bundle static library.");
+                std::process::exit(1);
+            }
+        } else {
+            if script::has_script("linker") {
+                let mut args: Vec<String> = vec![format!("build/{prefix}{artifact}{suffix}")];
+                args.append(&mut link);
+                script::run_script("linker", args);
+            } else {
+                let mut ld_incantation = Command::new(ld.clone());
+
+                let ld_incantation = ld_incantation
+                    .arg("-o")
+                    .arg(format!("build/{prefix}{artifact}{suffix}"))
+                    .args(ldflags.clone())
+                    .args(link)
+                    .arg("-I./lib/include") // local lib headers
+                    .arg("-L./lib/shared") // local lib binaries
+                    .args(link_dep_args)
+                    .stdout(std::process::Stdio::piped())
+                    .stderr(std::process::Stdio::piped());
+
+                // dylibs
+                if emit == "shared" || emit == "dylib" {
+                    ld_incantation.arg("-shared");
+                }
+
+                let at_directives = manifest.directives.get("Directive").unwrap();
+                // no standard lib directives
+                if at_directives.contains(&"no-link-libc".into()) {
+                    ld_incantation.arg("-nostdlib");
+                } else {
+                    // dont link c++ stdlib if we aren't linking libc
+                    ld_incantation.arg(format!("-l{stdlibflavor}"));
+                }
+                if at_directives.contains(&"freestanding".into()) {
+                    ld_incantation.arg("-ffreestanding");
+                }
+
+                // custom linker script
+                match manifest.properties.get("C-Linker-Script") {
+                    Some(script) => {
+                        ld_incantation.arg("-T");
+                        ld_incantation.arg(script);
+                    }
+                    None => {}
+                }
+
+                // finally, actually link
+                let ld_incantation = ld_incantation.output().unwrap();
+
+                print!("{}", String::from_utf8(ld_incantation.stdout).unwrap());
+                eprint!("{}", String::from_utf8(ld_incantation.stderr).unwrap());
+
+                std::io::stdout().flush().ok();
+                std::io::stderr().flush().ok();
+
+                if ld_incantation.status.success() {
+                    ok!("Project successfully built!");
+                } else {
+                    error!("Project failed to build.");
+                }
             }
         }
 

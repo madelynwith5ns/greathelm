@@ -113,5 +113,46 @@ impl Action for BuildAction {
                 std::process::exit(1);
             }
         }
+
+        let export_dir = Path::new("export/");
+        if !export_dir.exists() {
+            match std::fs::create_dir_all(export_dir) {
+                Ok(_) => {}
+                Err(e) => {
+                    print_error_obj(
+                        Some("Failed to create export directory. Abort.".into()),
+                        Box::new(e),
+                    );
+                    std::process::exit(1);
+                }
+            }
+        }
+
+        // exports
+        let exports = match state.manifest.directives.get("Export") {
+            Some(s) => s.to_owned(),
+            None => {
+                vec![]
+            }
+        };
+
+        for export in exports {
+            let export_name = match export.split("/").last() {
+                Some(v) => v,
+                None => "unnamed_export",
+            };
+
+            match std::fs::copy(
+                Path::new(export.as_str()),
+                Path::new(format!("export/{export_name}").as_str()),
+            ) {
+                Ok(_) => {
+                    ok!("Successfully exported \x1bc{export}\x1br");
+                }
+                Err(_) => {
+                    warning!("Failed exporting \x1bc{export}\x1br");
+                }
+            };
+        }
     }
 }
