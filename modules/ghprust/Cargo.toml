@@ -8,4 +8,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 duct = "0.13.7"
-greathelm = { git = "https://github.com/Greathelm/Greathelm" }
+greathelm = { path = "../../" }
