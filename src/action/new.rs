@@ -3,7 +3,7 @@ use crate::term::*;
 use super::Action;
 
 /**
- * Built-in (io.github.greathelm.greathelm:New) action to create a project from
+ * Built-in (io.github.madelynwith5ns.greathelm:New) action to create a project from
  * a template.
  */
 pub struct NewAction {}
@@ -22,7 +22,7 @@ impl Action for NewAction {
     }
     fn get_identifier(&self) -> crate::identify::NamespacedIdentifier {
         crate::identify::NamespacedIdentifier {
-            namespace: "io.github.greathelm.greathelm".into(),
+            namespace: "io.github.madelynwith5ns.greathelm".into(),
             identifier: "New".into(),
         }
     }

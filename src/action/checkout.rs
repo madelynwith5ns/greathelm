@@ -3,7 +3,7 @@ use crate::{builder::dependency, identify::NamespacedIdentifier, term::*};
 use super::Action;
 
 /**
- * Built-in action (io.github.greathelm.greathelm:Checkout) for copying a project out of the
+ * Built-in action (io.github.madelynwith5ns.greathelm:Checkout) for copying a project out of the
  * global store once it has been imported.
  * Requires a dependency-notation-form identifier at state.cli_args[2].
  */
@@ -23,7 +23,7 @@ impl Action for CheckoutAction {
     }
     fn get_identifier(&self) -> NamespacedIdentifier {
         NamespacedIdentifier {
-            namespace: "io.github.greathelm.greathelm".into(),
+            namespace: "io.github.madelynwith5ns.greathelm".into(),
             identifier: "Checkout".into(),
         }
     }

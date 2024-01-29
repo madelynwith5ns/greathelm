@@ -32,7 +32,7 @@ impl ProjectBuilder for CBuilder {
     }
     fn get_identifier(&self) -> crate::identify::NamespacedIdentifier {
         return crate::identify::NamespacedIdentifier {
-            namespace: "io.github.greathelm.greathelm".into(),
+            namespace: "io.github.madelynwith5ns.greathelm".into(),
             identifier: "C".into(),
         };
     }

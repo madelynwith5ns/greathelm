@@ -3,7 +3,7 @@ use crate::{script, term::*};
 use super::Action;
 
 /**
- * Built-in (io.github.greathelm.greathelm:Script) action to run a script in the current
+ * Built-in (io.github.madelynwith5ns.greathelm:Script) action to run a script in the current
  * project.
  */
 pub struct ScriptAction {}
@@ -22,7 +22,7 @@ impl Action for ScriptAction {
     }
     fn get_identifier(&self) -> crate::identify::NamespacedIdentifier {
         crate::identify::NamespacedIdentifier {
-            namespace: "io.github.greathelm.greathelm".into(),
+            namespace: "io.github.madelynwith5ns.greathelm".into(),
             identifier: "Script".into(),
         }
     }

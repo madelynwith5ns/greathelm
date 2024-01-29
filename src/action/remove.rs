@@ -3,7 +3,7 @@ use crate::{identify::NamespacedIdentifier, store, term::*};
 use super::Action;
 
 /**
- * Built-in (io.github.greathelm.greathelm:Remove) action to remove all versions of a package
+ * Built-in (io.github.madelynwith5ns.greathelm:Remove) action to remove all versions of a package
  * from the local store.
  */
 pub struct RemoveAction {}
@@ -22,7 +22,7 @@ impl Action for RemoveAction {
     }
     fn get_identifier(&self) -> crate::identify::NamespacedIdentifier {
         crate::identify::NamespacedIdentifier {
-            namespace: "io.github.greathelm.greathelm".into(),
+            namespace: "io.github.madelynwith5ns.greathelm".into(),
             identifier: "Remove".into(),
         }
     }

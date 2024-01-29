@@ -3,7 +3,7 @@ use crate::{builder::dependency, identify::NamespacedIdentifier, term::*};
 use super::Action;
 
 /**
- * Built-in (io.github.greathelm.greathelm:PackageScript) action for running a script within an
+ * Built-in (io.github.madelynwith5ns.greathelm:PackageScript) action for running a script within an
  * imported package. Requires a dependency-notation identifier at state.cli_args[2].
  */
 pub struct PackageScript {}
@@ -22,7 +22,7 @@ impl Action for PackageScript {
     }
     fn get_identifier(&self) -> NamespacedIdentifier {
         NamespacedIdentifier {
-            namespace: "io.github.greathelm.greathelm".into(),
+            namespace: "io.github.madelynwith5ns.greathelm".into(),
             identifier: "PackageScript".into(),
         }
     }

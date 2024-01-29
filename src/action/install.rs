@@ -5,7 +5,7 @@ use crate::{config, plugin, term::*};
 use super::Action;
 
 /**
- * Built-in (io.github.greathelm.greathelm:Install) action to install a plugin.
+ * Built-in (io.github.madelynwith5ns.greathelm:Install) action to install a plugin.
  */
 pub struct InstallAction {}
 impl InstallAction {
@@ -23,7 +23,7 @@ impl Action for InstallAction {
     }
     fn get_identifier(&self) -> crate::identify::NamespacedIdentifier {
         crate::identify::NamespacedIdentifier {
-            namespace: "io.github.greathelm.greathelm".into(),
+            namespace: "io.github.madelynwith5ns.greathelm".into(),
             identifier: "Install".into(),
         }
     }

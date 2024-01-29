@@ -3,7 +3,7 @@ use crate::{config, store, template, term::*};
 use super::Action;
 
 /**
- * Built-in (io.github.greathelm.greathelm:About) action to get information about the current
+ * Built-in (io.github.madelynwith5ns.greathelm:About) action to get information about the current
  * Greathelm install.
  */
 pub struct AboutAction {}
@@ -22,7 +22,7 @@ impl Action for AboutAction {
     }
     fn get_identifier(&self) -> crate::identify::NamespacedIdentifier {
         crate::identify::NamespacedIdentifier {
-            namespace: "io.github.greathelm.greathelm".into(),
+            namespace: "io.github.madelynwith5ns.greathelm".into(),
             identifier: "About".into(),
         }
     }

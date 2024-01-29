@@ -34,7 +34,7 @@ pub struct GreathelmPlugin {
     /**
      * All builders and generators within this plugin are expected to reside underneath this
      * identifier. For example, if the identifier is io.github.greathelm:Greathelm, all plugin
-     * components are expected to be under io.github.greathelm.greathelm:<identifier here>.
+     * components are expected to be under io.github.madelynwith5ns.greathelm:<identifier here>.
      */
     pub identifier: NamespacedIdentifier,
     /**
