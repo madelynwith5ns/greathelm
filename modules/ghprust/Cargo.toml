@@ -1,0 +1,11 @@
+[package]
+name = "ghprust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+duct = "0.13.7"
+greathelm = { git = "https://github.com/Greathelm/Greathelm" }
