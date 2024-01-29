@@ -11,10 +11,10 @@ pub unsafe fn GHPI_PluginInit() -> GreathelmPlugin {
     return GreathelmPlugin { 
         // plugin metadata
         name: "Greathelm Rust Support".into(),
-        vendor: "Greathelm".into(),
+        vendor: "MadelynWith5Ns".into(),
         description: "Adds experimental Rust support to Greathelm.".into(),
         identifier: NamespacedIdentifier {
-            namespace: "io.github.greathelm.ghp".into(),
+            namespace: "io.github.madelynwith5ns.greathelm.ghp".into(),
             identifier: "GHP-Rust".into()
         },
         version: Version::parse("0.1.0-alpha".into()),

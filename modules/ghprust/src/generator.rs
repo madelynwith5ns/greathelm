@@ -18,7 +18,7 @@ impl ProjectGenerator for RustGenerator {
     }
     fn get_identifier(&self) -> NamespacedIdentifier {
         NamespacedIdentifier {
-            namespace: "io.github.greathelm.ghp.ghp-rust".into(),
+            namespace: "io.github.madelynwith5ns.greathelm.ghp.ghp-rust".into(),
             identifier: "Rust".into(),
         }
     }

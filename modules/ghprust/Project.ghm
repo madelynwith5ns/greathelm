@@ -1,6 +1,6 @@
 # Greathelm Project Manifest
 Project-Name=GHP-Rust
-Project-Namespace=io.github.greathelm.ghp
+Project-Namespace=io.github.madelynwith5ns.greathelm.ghp
 Project-Author=MadelynWith5Ns
 Project-Version=0.1.0-alpha
 Project-Type=Custom
