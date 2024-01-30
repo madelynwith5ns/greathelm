@@ -18,7 +18,7 @@ Projects are built using builders (crazy). There is a builder for every included
 ### Additional Language Support
 Support for other languages can be added to Greathelm via plugins. There is currently 1 language supported this way.
 
-- **Rust** [GHP-Rust Plugin](https://github.com/Greathelm/GHP-Rust) (Unstable)
+- **Rust** GHP-Rust Plugin, included in [modules/ghp-rust](https://github.com/MadelynWith5Ns/Greathelm/tree/master/modules/ghprust) (Unstable)
 
 ### Modules
 Projects can have `modules` attached to them. Modules are smaller Greathelm projects referenced by a larger one using the `@Module` directive. These projects are built first and the specified files are copied to their location in the larger project's source tree.
@@ -29,6 +29,8 @@ Here's an example of using a `libFoo` module in a C project:
 ```
 
 This directive tells Greathelm to first build the `libFoo` project resident within `modules/` and then copy `build/libFoo.so` from its source tree into `lib/shared/libFoo.so` in the parent project, and then do the same with `src/foo.h` to `lib/include/foo.h`.
+Modules can be used to grab single files or entire directories. You might choose to use this to manage a bunch of files that need to be included in many subprojects underneath your main parent project.
+You could also use this for dependencies that you are not building separately.
 
 ### Scripts
 Scripts can reside within either the `scripts/` folder in a project or globally in the configuration (on Linux, these are located at `$XDG_CONFIG_HOME/greathelm/scripts`).
@@ -44,7 +46,7 @@ To get started using Greathelm, you first need to install it.
 You will need to have [Rust](https://rust-lang.org) installed (specifically, you will need Cargo).
 
 ```sh
-git clone https://github.com/Greathelm/Greathelm && cd Greathelm
+git clone https://github.com/MadelynWith5Ns/Greathelm && cd Greathelm
 cargo build --release
 cp target/release/greathelm ~/.local/bin/greathelm
 ```
