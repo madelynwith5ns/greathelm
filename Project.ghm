@@ -6,6 +6,9 @@ Project-Version=0.1.0
 Project-Type=Custom
 Output-Name=greathelm
 
+# CLI Log
+@Module cli-log build/ghl-info:build/ghl-info build/ghl-warn:build/ghl-warn build/ghl-error:build/ghl-error build/ghl-ok:build/ghl-ok
+
 # Import plugins if we have any
 @Import Plugins.ghm
 

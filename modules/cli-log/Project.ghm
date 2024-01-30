@@ -1,0 +1,9 @@
+# Greathelm Project Manifest
+Project-Name=cli-log
+Project-Namespace=io.github.madelynwith5ns.greathelm.tools
+Project-Author=MadelynWith5Ns
+Project-Version=0.1.0
+Project-Type=Custom
+Output-Name=cli-log
+
+Greathelm-Version=0.1.0
