@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-duct = "0.13.6"
+duct = "0.13.7"
 libloading = "0.8.1"
 md5 = "0.7"
