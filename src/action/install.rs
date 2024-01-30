@@ -56,6 +56,25 @@ impl Action for InstallAction {
                     path.file_name().unwrap().to_str().unwrap()
                 );
                 let plugin_file = PathBuf::from_str(plugin_file.as_str()).unwrap();
+
+                if plugin_file.exists() {
+                    info!("You already have this plugin installed.");
+                    let r = question("Would you like to update it? (y/N)".into()).to_lowercase();
+                    if !r.starts_with("y") {
+                        ok!("Exitting.");
+                        return;
+                    }
+                    match std::fs::remove_file(&plugin_file) {
+                        Ok(_) => {
+                            ok!("Old copy removed.");
+                        }
+                        Err(_) => {
+                            error!("There was an error removing the old copy of the plugin!");
+                            return;
+                        }
+                    }
+                }
+
                 match std::fs::copy(path, plugin_file) {
                     Ok(_) => {
                         ok!("Successfully installed \x1bc{}\x1br", pl.identifier);

@@ -42,7 +42,7 @@ fn create_template(_identifier: NamespacedIdentifier, _path: PathBuf) -> bool {
 fn first_time_setup() {
     // alpha warning
     warning!("The Greathelm Rust Support (GHP-Rust) plugin is currently in an alpha state.");
-    warning!("It is very unstable and not suited to compiling most Rust programs.");
+    warning!("It is very unstable and not suited to building most Rust programs.");
     warning!("Here be dragons!");
 }
 
