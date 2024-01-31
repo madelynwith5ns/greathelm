@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
             printf("\x1b[38;5;240m[\x1b[38;5;60mCHILD\x1b[38;5;240m] ");
         }
     }
-    printf("\x1b[38;5;240m[\x1b[38;5;214mWARN \x1b[38;5;240m] \x1b[1;0m%s\n", text);
+    printf("\x1b[38;5;240m[\x1b[38;5;11mWARN \x1b[38;5;240m] \x1b[1;0m%s\n", text);
     free(text);
     return 0;
 }
