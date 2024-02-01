@@ -10,6 +10,7 @@ pub mod new;
 pub mod pkgscript;
 pub mod pkgshell;
 pub mod remove;
+pub mod resolve;
 pub mod script;
 pub mod uninstall;
 

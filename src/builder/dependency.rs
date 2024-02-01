@@ -38,6 +38,37 @@ pub fn parse_dependency_notation(notation: String) -> (NamespacedIdentifier, Opt
     }
 }
 
+/**
+ * Returns a Vec of all versions of the specified package found in the
+ * local store.
+ */
+pub fn get_all_versions(identifier: &NamespacedIdentifier) -> Vec<Version> {
+    let path = store::get_path(&identifier);
+    if !path.exists() {
+        return vec![];
+    }
+
+    let mut versions = Vec::new();
+    for ent in path.read_dir().unwrap() {
+        let ent = ent.unwrap();
+        let vtext = format!("{}", ent.file_name().to_string_lossy());
+        if !vtext.contains("@") {
+            continue;
+        }
+        let vtext = vtext.split_once("@").unwrap().1;
+        let version = version::Version::parse(vtext.into());
+        versions.push(version);
+    }
+
+    return versions;
+}
+
+/**
+ * Attempts to resolve the Path (as a PathBuf) to the directory containing the
+ * specified package (and version). If no version is passed, the latest version in the
+ * store is used.
+ * If there are no versions or the package is not found, this returns None.
+ */
 pub fn resolve_dependency(
     identifier: NamespacedIdentifier,
     version: Option<Version>,
@@ -63,18 +94,7 @@ pub fn resolve_dependency(
     if path.exists() && version.is_some() {
         return Some(path);
     } else if path.exists() {
-        let mut versions = Vec::new();
-
-        for ent in path.read_dir().unwrap() {
-            let ent = ent.unwrap();
-            let vtext = format!("{}", ent.file_name().to_string_lossy());
-            if !vtext.contains("@") {
-                continue;
-            }
-            let vtext = vtext.split_once("@").unwrap().1;
-            let version = version::Version::parse(vtext.into());
-            versions.push(version);
-        }
+        let mut versions = get_all_versions(&identifier);
 
         if versions.is_empty() {
             error!("Item \x1bc{identifier}\x1br was resolved, but there are no present versions!");

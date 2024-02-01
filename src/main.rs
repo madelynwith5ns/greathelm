@@ -102,6 +102,7 @@ fn main() {
     actions.push(Box::new(action::install::InstallAction::create()));
     actions.push(Box::new(action::uninstall::UninstallAction::create()));
     actions.push(Box::new(action::about::AboutAction::create()));
+    actions.push(Box::new(action::resolve::ResolveAction::create()));
 
     // load plugins here..
     let plugins = plugin::load_plugins();
