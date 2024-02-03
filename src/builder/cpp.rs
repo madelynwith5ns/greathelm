@@ -39,7 +39,7 @@ impl ProjectBuilder for CPPBuilder {
 
         // Settings
         let cc = manifest.get_string_property("Override-C++-Compiler", "c++");
-        let ld = manifest.get_string_property("Override-C++-Linker", "cc");
+        let ld = manifest.get_string_property("Override-C++-Linker", "c++");
         let opt = manifest.get_string_property("Compiler-Opt-Level", "2");
         let artifact = manifest.get_string_property("Executable-Name", "binary");
         let cflags = match manifest.properties.get("Additional-CC-Flags".into()) {
