@@ -278,8 +278,6 @@ impl ProjectBuilder for CBuilder {
         build.wait();
 
         // link
-        info!("LD \x1bc{artifact}\x1br");
-
         let mut prefix = "";
         let mut suffix = "";
 
@@ -369,9 +367,9 @@ impl ProjectBuilder for CBuilder {
                 std::io::stderr().flush().ok();
 
                 if ld_incantation.status.success() {
-                    ok!("Project successfully built!");
+                    ok!("LD \x1bc{artifact}");
                 } else {
-                    error!("Project failed to build.");
+                    error!("LD \x1bc{artifact}");
                 }
             }
         }
