@@ -70,6 +70,7 @@ impl ProjectBuilder for CPPBuilder {
         let debug_info = manifest.get_bool_property("debug-info", false);
         let force_full_rebuild = manifest.get_bool_property("force-full-rebuild", false);
         let stdlibflavor = manifest.get_string_property("C++-Stdlib-Flavor", "stdc++");
+        let inspect = manifest.get_bool_property("inspect-commands", false);
 
         info!("Using C++ \x1bc{cc}\x1br");
         info!("Using LD \x1bc{ld}\x1br");
@@ -253,6 +254,14 @@ impl ProjectBuilder for CPPBuilder {
                         cc_incantation.arg("-g");
                     }
 
+                    if inspect {
+                        let a: Vec<_> = cc_incantation
+                            .get_args()
+                            .map(|v| v.to_string_lossy())
+                            .collect();
+                        info!("{cc} {}", a.join(" "));
+                    }
+
                     let cc_incantation = cc_incantation
                         .stdout(std::process::Stdio::piped())
                         .stderr(std::process::Stdio::piped())
@@ -348,6 +357,14 @@ impl ProjectBuilder for CPPBuilder {
                         ld_incantation.arg(script);
                     }
                     None => {}
+                }
+
+                if inspect {
+                    let a: Vec<_> = ld_incantation
+                        .get_args()
+                        .map(|v| v.to_string_lossy())
+                        .collect();
+                    info!("{ld} {}", a.join(" "));
                 }
 
                 // finally, actually link
