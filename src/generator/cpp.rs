@@ -73,7 +73,7 @@ impl ProjectGenerator for CPPGenerator {
                                        Project-Namespace={project_namespace}\n\
                                        Project-Author={project_author}\n\
                                        Project-Version=0.1.0-alpha\n\
-                                       Project-Type=C\n\
+                                       Project-Type=C++\n\
                                        Compiler-Opt-Level=2\n\
                                        Executable-Name={project_name}\n\
                                        Emit={project_emit}\n\
