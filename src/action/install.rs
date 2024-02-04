@@ -85,7 +85,7 @@ impl Action for InstallAction {
                 };
             }
             None => {
-                error!("Please provide a script name.");
+                error!("Please provide a plugin file.");
             }
         }
     }

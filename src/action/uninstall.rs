@@ -72,7 +72,7 @@ impl Action for UninstallAction {
                     error!("Failed to remove plugin: No plugin installed with the provided identifier.");
                 }
                 None => {
-                    error!("Please provide a script name.");
+                    error!("Please provide a plugin identifier.");
                 }
             }
         }
