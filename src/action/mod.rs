@@ -6,6 +6,7 @@ pub mod checkout;
 pub mod import;
 pub mod init;
 pub mod install;
+pub mod ls;
 pub mod new;
 pub mod pkgscript;
 pub mod pkgshell;

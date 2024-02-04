@@ -103,6 +103,7 @@ fn main() {
     actions.push(Box::new(action::uninstall::UninstallAction::create()));
     actions.push(Box::new(action::about::AboutAction::create()));
     actions.push(Box::new(action::resolve::ResolveAction::create()));
+    actions.push(Box::new(action::ls::LSAction::create()));
 
     // load plugins here..
     let plugins = plugin::load_plugins();
