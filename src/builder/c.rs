@@ -1,5 +1,10 @@
 use std::{
-    collections::HashMap, io::Write, path::PathBuf, process::Command, str::FromStr, sync::Arc,
+    collections::HashMap,
+    io::Write,
+    path::{Path, PathBuf},
+    process::Command,
+    str::FromStr,
+    sync::Arc,
 };
 
 use crate::{
@@ -399,7 +404,53 @@ impl ProjectBuilder for CBuilder {
         return true;
     }
 
-    fn cleanup(&self, _manifest: &ProjectManifest) {
-        error!("C builder does not currently include a cleanup step. Aborting.");
+    fn cleanup(&self, manifest: &ProjectManifest) {
+        let ibht = ibht::read_ibht();
+        let mut keep = Vec::new();
+        for k in ibht.keys() {
+            keep.push(format!(
+                "build/{}-{}.o",
+                k.replace("/", "_"),
+                ibht.get(k).unwrap()
+            ));
+        }
+        keep.push(format!(
+            "build/{}",
+            manifest.get_string_property("Executable-Name", "unnamedexe")
+        ));
+        keep.push(format!(
+            "build/lib{}.so",
+            manifest.get_string_property("Executable-Name", "unnamedexe")
+        ));
+        keep.push(format!(
+            "build/lib{}.a",
+            manifest.get_string_property("Executable-Name", "unnamedexe")
+        ));
+
+        let path = Path::new("build/");
+
+        for f in match std::fs::read_dir(path) {
+            Ok(rd) => rd,
+            Err(_) => {
+                error!("Failed to read build directory.");
+                return;
+            }
+        } {
+            if !f.is_ok() {
+                continue;
+            }
+            let f = f.unwrap();
+            if !keep.contains(&format!("{}", f.path().display())) {
+                match std::fs::remove_file(f.path()) {
+                    Ok(_) => {}
+                    Err(_) => {
+                        warning!(
+                            "Failed to remove irrelevant file \x1bc{}\x1br",
+                            f.path().display()
+                        );
+                    }
+                };
+            }
+        }
     }
 }
