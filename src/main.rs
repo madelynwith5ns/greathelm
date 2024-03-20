@@ -124,10 +124,10 @@ fn main() {
     }
 
     let state = GreathelmState {
-        builders: builders,
-        generators: generators,
-        manifest: manifest,
-        actions: actions,
+        builders,
+        generators,
+        manifest,
+        actions,
         plugins: infos,
         cli_args: std::env::args().collect(),
     };
