@@ -29,11 +29,6 @@ pub trait ProjectGenerator {
      */
     fn get_identifier(&self) -> NamespacedIdentifier;
     /**
-     * Tells Greathelm whether or not it should create a stub
-     * IBHT. This exists incase the IBHT format changes.
-     */
-    fn should_make_ibht_stub(&self) -> bool;
-    /**
      * Actually generates the project. This is given the path to create the project in.
      */
     fn generate(&self, cwd: PathBuf);

@@ -31,9 +31,6 @@ impl ProjectGenerator for CustomGenerator {
             identifier: "Custom".into(),
         }
     }
-    fn should_make_ibht_stub(&self) -> bool {
-        false
-    }
     fn generate(&self, cwd: PathBuf) {
         super::helper::create_directory("src");
         super::helper::create_directory("scripts");

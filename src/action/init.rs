@@ -93,17 +93,5 @@ impl Action for InitAction {
         info!("Initializing current directory as Greathelm project \x1bc{project_name}\x1br");
 
         generator.generate(std::env::current_dir().unwrap());
-
-        if generator.should_make_ibht_stub() {
-            info!("Generator requested an IBHT stub. Writing IBHT stub...");
-            match std::fs::write("IBHT.ghd", "\n") {
-                Ok(_) => {
-                    ok!("Blank IBHT has been written successfully.");
-                }
-                Err(e) => {
-                    print_error_obj(Some("Failed to write IBHT.".into()), Box::new(e));
-                }
-            };
-        }
     }
 }

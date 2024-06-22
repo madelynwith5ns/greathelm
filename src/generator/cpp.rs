@@ -21,9 +21,6 @@ impl ProjectGenerator for CPPGenerator {
     fn get_aliases(&self) -> Vec<String> {
         vec!["c++".into(), "cpp".into()]
     }
-    fn should_make_ibht_stub(&self) -> bool {
-        true
-    }
     fn get_identifier(&self) -> crate::identify::NamespacedIdentifier {
         crate::identify::NamespacedIdentifier {
             namespace: "io.github.madelynwith5ns.greathelm".into(),

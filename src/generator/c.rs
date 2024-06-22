@@ -27,9 +27,6 @@ impl ProjectGenerator for CGenerator {
     fn get_aliases(&self) -> Vec<String> {
         vec!["c".into()]
     }
-    fn should_make_ibht_stub(&self) -> bool {
-        true
-    }
     fn generate(&self, _cwd: PathBuf) {
         super::helper::create_directory("src");
         super::helper::create_directory("lib");
