@@ -3,26 +3,30 @@ use crate::{config, identify::NamespacedIdentifier, plugin, term::*};
 use super::Action;
 
 /**
- * Built-in (io.github.madelynwith5ns.greathelm:Uninstall) action to uninstall an installed plugin.
+ * Built-in (com.mw5ns.greathelm:PluginUninstall) action to uninstall an installed plugin.
  */
-pub struct UninstallAction {}
-impl UninstallAction {
+pub struct PluginUninstallAction {}
+impl PluginUninstallAction {
     pub fn create() -> Self {
         Self {}
     }
 }
 
-impl Action for UninstallAction {
+impl Action for PluginUninstallAction {
     fn get_name(&self) -> String {
-        "Uninstall".into()
+        "PluginUninstall".into()
     }
     fn get_aliases(&self) -> Vec<String> {
-        vec!["uninstall".into()]
+        vec![
+            "pluginuninstall".into(),
+            "pluguninstall".into(),
+            "plugrm".into(),
+        ]
     }
     fn get_identifier(&self) -> crate::identify::NamespacedIdentifier {
         crate::identify::NamespacedIdentifier {
-            namespace: "io.github.madelynwith5ns.greathelm".into(),
-            identifier: "Uninstall".into(),
+            namespace: "com.mw5ns.greathelm".into(),
+            identifier: "PluginUninstall".into(),
         }
     }
 

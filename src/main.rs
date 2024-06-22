@@ -99,8 +99,12 @@ fn main() {
     actions.push(Box::new(action::pkgshell::PackageShell::create()));
     actions.push(Box::new(action::pkgscript::PackageScript::create()));
     actions.push(Box::new(action::new::NewAction::create()));
-    actions.push(Box::new(action::install::InstallAction::create()));
-    actions.push(Box::new(action::uninstall::UninstallAction::create()));
+    actions.push(Box::new(
+        action::plugininstall::PluginInstallAction::create(),
+    ));
+    actions.push(Box::new(
+        action::pluginuninstall::PluginUninstallAction::create(),
+    ));
     actions.push(Box::new(action::about::AboutAction::create()));
     actions.push(Box::new(action::resolve::ResolveAction::create()));
     actions.push(Box::new(action::ls::LSAction::create()));

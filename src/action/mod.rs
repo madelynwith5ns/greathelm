@@ -6,15 +6,15 @@ pub mod checkout;
 pub mod clean;
 pub mod import;
 pub mod init;
-pub mod install;
 pub mod ls;
 pub mod new;
 pub mod pkgscript;
 pub mod pkgshell;
+pub mod plugininstall;
+pub mod pluginuninstall;
 pub mod remove;
 pub mod resolve;
 pub mod script;
-pub mod uninstall;
 
 /**
  * Trait defining actions. Impl this to create command-line actions.

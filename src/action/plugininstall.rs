@@ -5,26 +5,26 @@ use crate::{config, plugin, term::*};
 use super::Action;
 
 /**
- * Built-in (io.github.madelynwith5ns.greathelm:Install) action to install a plugin.
+ * Built-in (com.mw5ns.greathelm:PluginInstall) action to install a plugin.
  */
-pub struct InstallAction {}
-impl InstallAction {
+pub struct PluginInstallAction {}
+impl PluginInstallAction {
     pub fn create() -> Self {
         Self {}
     }
 }
 
-impl Action for InstallAction {
+impl Action for PluginInstallAction {
     fn get_name(&self) -> String {
-        "Install".into()
+        "PluginInstall".into()
     }
     fn get_aliases(&self) -> Vec<String> {
-        vec!["install".into()]
+        vec!["plugininstall".into(), "pluginstall".into()]
     }
     fn get_identifier(&self) -> crate::identify::NamespacedIdentifier {
         crate::identify::NamespacedIdentifier {
-            namespace: "io.github.madelynwith5ns.greathelm".into(),
-            identifier: "Install".into(),
+            namespace: "com.mw5ns.greathelm".into(),
+            identifier: "PluginInstall".into(),
         }
     }
 
