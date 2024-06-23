@@ -12,4 +12,11 @@ Output-Name=greathelm
 # Import plugins if we have any
 @Import Plugins.ghm
 
+# Exports
+@Export build/greathelm bin/greathelm
+@Export build/cli-log/ghl-info bin/ghl-info
+@Export build/cli-log/ghl-error bin/ghl-error
+@Export build/cli-log/ghl-warn bin/ghl-warn
+@Export build/cli-log/ghl-ok bin/ghl-ok
+
 Greathelm-Version=0.1.0

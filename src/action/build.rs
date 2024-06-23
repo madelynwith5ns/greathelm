@@ -1,5 +1,5 @@
 use crate::term::*;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::{builder::ProjectBuilder, identify::NamespacedIdentifier, script};
 
@@ -138,15 +138,30 @@ impl Action for BuildAction {
         };
 
         for export in exports {
+            // @Export build/greathelm bin/greathelm
+            // for example
+            // exports build/greathelm to the export/bin/greathelm directory
+            // this is to make packaging easier.
+            let (export, mut to) = export.split_once(" ").unwrap_or((&export, ""));
             let export_name = match export.split("/").last() {
                 Some(v) => v,
                 None => "unnamed_export",
             };
-
-            match std::fs::copy(
-                Path::new(export.as_str()),
-                Path::new(format!("export/{export_name}").as_str()),
-            ) {
+            if to == "" {
+                to = export_name;
+            }
+            // parent directories
+            // cuz we might export to
+            // etc/program/some/more/config/folders/for/some/reason/config.cfg
+            let dest = PathBuf::from(format!("export/{to}"));
+            match std::fs::create_dir_all(dest.parent().unwrap()) {
+                Ok(_) => {}
+                Err(_) => {
+                    warning!("Failed exporting \x1bc{export}\x1br");
+                    return;
+                }
+            };
+            match std::fs::copy(export, dest) {
                 Ok(_) => {
                     ok!("Successfully exported \x1bc{export}\x1br");
                 }
